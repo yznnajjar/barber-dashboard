@@ -1,141 +1,150 @@
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import { useAuthStore } from '../lib/authStore'
-import { PWAInstallBanner } from './PWAInstallBanner'
-import { MobileBottomNav } from './MobileBottomNav'
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useAuthStore } from '../lib/authStore';
+import { Spinner } from './ui';
+import {
+  SidebarWrap, SidebarLogo, LogoMark, LogoText, SidebarNav, NavLabel, NavItem,
+  SidebarFooter, UserInfo, UserAvatar, UserName, LogoutIcon,
+  TopBar, HamburgerBtn, TopBarTitle, Overlay,
+  Main, PageContent, BottomNav, BottomNavItem, LoadingScreen,
+} from './Layout.styles';
 
-interface LayoutProps {
-  children: React.ReactNode
-  title?: string
-  backHref?: string
-  action?: React.ReactNode
+export {
+  PageHeader, PageTitle, PageSubtitle, PageActions,
+} from './Layout.styles';
+
+interface NavEntry {
+  href: string;
+  icon: string;
+  label: string;
+  section?: string;
 }
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: '🏠', href: '/dashboard' },
-  { label: 'Calendar', icon: '📅', href: '/calendar' },
-  { label: 'Queue', icon: '🎫', href: '/queue' },
-  { label: 'Clients', icon: '👥', href: '/clients' },
-  { label: 'Analytics', icon: '📊', href: '/analytics' },
-]
+const NAV: NavEntry[] = [
+  { href: '/dashboard', icon: '◈', label: 'Overview',   section: 'Main' },
+  { href: '/bookings',  icon: '◷', label: 'Bookings',   section: 'Main' },
+  { href: '/queue',     icon: '⋮⋮', label: 'Live Queue', section: 'Main' },
+  { href: '/staff',     icon: '◉', label: 'Staff',      section: 'Manage' },
+  { href: '/services',  icon: '✦', label: 'Services',   section: 'Manage' },
+  { href: '/reviews',   icon: '★', label: 'Reviews',    section: 'Manage' },
+  { href: '/analytics', icon: '▨', label: 'Analytics',  section: 'Reports' },
+  { href: '/clients',   icon: '◎', label: 'Clients',    section: 'Reports' },
+];
 
-export function Layout({ children, title, backHref, action }: LayoutProps) {
-  const { user, isAuthenticated, loadStoredAuth, logout } = useAuthStore()
-  const router = useRouter()
+const BOTTOM_NAV: NavEntry[] = [
+  { href: '/dashboard', icon: '◈', label: 'Home' },
+  { href: '/bookings',  icon: '◷', label: 'Bookings' },
+  { href: '/queue',     icon: '⋮⋮', label: 'Queue' },
+  { href: '/staff',     icon: '◉', label: 'Staff' },
+];
 
-  useEffect(() => { loadStoredAuth() }, [])
+interface LayoutProps {
+  children: React.ReactNode;
+  title?: string;
+}
+
+export default function Layout({ children, title }: LayoutProps) {
+  const router = useRouter();
+  const { user, logout, hydrate, isHydrated } = useAuthStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => { hydrate(); }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/login')
-  }, [isAuthenticated])
+    if (isHydrated && !user) router.push('/login');
+  }, [isHydrated, user]);
 
-  if (!isAuthenticated) return null
+  useEffect(() => { setSidebarOpen(false); }, [router.pathname]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
+
+  const initials = user?.name
+    ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : '?';
+
+  if (!isHydrated) {
+    return (
+      <LoadingScreen>
+        <Spinner size={32} />
+      </LoadingScreen>
+    );
+  }
+
+  const sections = Array.from(new Set(NAV.map((n) => n.section)));
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
+    <>
+      <SidebarWrap open={sidebarOpen}>
+        <SidebarLogo>
+          <LogoMark>✂</LogoMark>
+          <LogoText>
+            <h1>Barber</h1>
+            <p>Dashboard</p>
+          </LogoText>
+        </SidebarLogo>
 
-      {/* ── Desktop sidebar ── */}
-      <div className="hidden md:flex fixed top-0 left-0 h-full w-56 bg-white border-r border-gray-200 flex-col z-40">
-        {/* Brand */}
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">✂️</span>
-            <div>
-              <div className="font-bold text-sm text-[#1A1A18]">BarberApp</div>
-              <div className="text-xs text-gray-400">Salon Dashboard</div>
-            </div>
-          </div>
-        </div>
+        <SidebarNav>
+          {sections.map((section) => (
+            <React.Fragment key={section}>
+              <NavLabel>{section}</NavLabel>
+              {NAV.filter((n) => n.section === section).map((item) => {
+                const active = router.pathname === item.href || router.pathname.startsWith(item.href + '/');
+                return (
+                  <Link href={item.href} key={item.href} passHref legacyBehavior>
+                    <NavItem active={active} data-active={String(active)}>
+                      <span className="icon">{item.icon}</span>
+                      {item.label}
+                    </NavItem>
+                  </Link>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </SidebarNav>
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const isActive = router.pathname === item.href ||
-              (item.href !== '/dashboard' && router.pathname.startsWith(item.href))
-            return (
-              <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-[#1A1A18] text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <span className="text-base">{item.icon}</span>
+        <SidebarFooter>
+          <UserInfo onClick={handleLogout} title="Click to logout">
+            <UserAvatar>{initials}</UserAvatar>
+            <UserName>
+              <p>{user?.name || 'User'}</p>
+              <p>{user?.role?.toLowerCase().replace('_', ' ')}</p>
+            </UserName>
+            <LogoutIcon>↩</LogoutIcon>
+          </UserInfo>
+        </SidebarFooter>
+      </SidebarWrap>
+
+      <TopBar>
+        <HamburgerBtn onClick={() => setSidebarOpen(!sidebarOpen)}>
+          {sidebarOpen ? '✕' : '☰'}
+        </HamburgerBtn>
+        <TopBarTitle>{title || 'Barber'}</TopBarTitle>
+        <UserAvatar small>{initials}</UserAvatar>
+      </TopBar>
+
+      <Overlay visible={sidebarOpen} onClick={() => setSidebarOpen(false)} />
+
+      <Main>
+        <PageContent>{children}</PageContent>
+      </Main>
+
+      <BottomNav>
+        {BOTTOM_NAV.map((item) => {
+          const active = router.pathname === item.href;
+          return (
+            <Link href={item.href} key={item.href} passHref legacyBehavior>
+              <BottomNavItem active={active}>
+                <span className="icon">{item.icon}</span>
                 {item.label}
-              </button>
-            )
-          })}
-        </nav>
-
-        {/* User */}
-        <div className="p-3 border-t border-gray-100">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
-              {user?.fullName?.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold text-[#1A1A18] truncate">{user?.fullName}</div>
-              <div className="text-xs text-gray-400 truncate">{user?.email}</div>
-            </div>
-            <button onClick={logout} className="text-gray-400 hover:text-red-500 text-xs" title="Logout">
-              ⎋
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Main content ── */}
-      <div className="md:ml-56">
-        {/* Mobile top bar */}
-        <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30">
-          <div className="flex items-center gap-2">
-            {backHref ? (
-              <button onClick={() => router.push(backHref)} className="text-gray-600 mr-1">
-                ←
-              </button>
-            ) : null}
-            <span className="text-lg">✂️</span>
-            <span className="font-semibold text-sm text-[#1A1A18]">
-              {title || 'BarberApp'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {action}
-            <button onClick={logout} className="text-xs text-red-500 font-medium">
-              Logout
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop page header */}
-        {title && (
-          <div className="hidden md:flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
-            <div className="flex items-center gap-2">
-              {backHref && (
-                <button
-                  onClick={() => router.push(backHref)}
-                  className="text-sm text-gray-500 hover:text-gray-800 mr-2"
-                >
-                  ← Back
-                </button>
-              )}
-              <h1 className="font-semibold text-[#1A1A18]">{title}</h1>
-            </div>
-            {action && <div>{action}</div>}
-          </div>
-        )}
-
-        {/* Page content */}
-        <div className="p-4 md:p-6 pb-24 md:pb-6">
-          <PWAInstallBanner />
-          {children}
-        </div>
-      </div>
-
-      {/* Mobile bottom nav */}
-      <MobileBottomNav />
-    </div>
-  )
+              </BottomNavItem>
+            </Link>
+          );
+        })}
+      </BottomNav>
+    </>
+  );
 }

@@ -1,77 +1,129 @@
-import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/router'
-import { useAuthStore } from '../lib/authStore'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import { useAuthStore } from '../lib/authStore';
+import { theme } from '../lib/theme';
+import { Button, Input, FormGroup, Label, ErrorText, Spinner } from '../components/ui';
+import {
+  Page, LeftPanel, BrandMark, BrandName, BrandTagline, Features, Feature,
+  RightPanel, LoginBox, LoginHeader, LoginTitle, LoginSubtitle,
+  Form, GlobalError, MobileBrand, MobileBrandIcon, MobileBrandText,
+  TestAccounts, TestAccountsLabel, TestAccountItem, TestAccountRole, TestAccountEmail,
+} from './login.styles';
+
+const TEST_ACCOUNTS = [
+  { role: 'Salon Owner', email: 'nour@example.com' },
+  { role: 'Admin',       email: 'admin@barberapp.com' },
+];
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const login = useAuthStore((s) => s.login)
-  const router = useRouter()
+  const router = useRouter();
+  const { login, isLoading, user, isHydrated, hydrate } = useAuthStore();
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      await login(email, password)
-      router.push('/dashboard')
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })
-        .response?.data?.error ?? 'Login failed. Please try again.'
-      setError(msg)
-    } finally {
-      setLoading(false)
+  useEffect(() => { hydrate(); }, []);
+  useEffect(() => {
+    if (isHydrated && user) router.push('/dashboard');
+  }, [isHydrated, user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!email || !password) {
+      setError('Please enter your email and password');
+      return;
     }
-  }
+    try {
+      await login(email, password);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Invalid email or password');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <span className="text-5xl">✂️</span>
-          <h1 className="text-2xl font-semibold mt-3 text-[#1A1A18]">BarberApp Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Salon owner & admin portal</p>
-        </div>
+    <>
+      <Head>
+        <title>Login — Barber Dashboard</title>
+      </Head>
 
-        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-8 space-y-5 shadow-sm">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-              {error}
-            </div>
-          )}
+      <Page>
+        <LeftPanel>
+          <BrandMark>✂</BrandMark>
+          <BrandName>Barber<br />Dashboard</BrandName>
+          <BrandTagline>
+            Manage your salon, staff, bookings, and live queue — all in one place.
+          </BrandTagline>
+          <Features>
+            <Feature>Real-time walk-in queue management</Feature>
+            <Feature>Smart booking &amp; availability engine</Feature>
+            <Feature>Staff schedules &amp; performance</Feature>
+            <Feature>Arabic-first, built for MENA</Feature>
+          </Features>
+        </LeftPanel>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-              Email
-            </label>
-            <input
-              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full bg-[#F4F3EE] border border-gray-200 rounded-lg px-4 py-3 text-sm text-[#1A1A18] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A1A18]"
-            />
-          </div>
+        <RightPanel>
+          <LoginBox>
+            <MobileBrand>
+              <MobileBrandIcon>✂</MobileBrandIcon>
+              <MobileBrandText>Barber</MobileBrandText>
+            </MobileBrand>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-              Password
-            </label>
-            <input
-              type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-[#F4F3EE] border border-gray-200 rounded-lg px-4 py-3 text-sm text-[#1A1A18] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1A1A18]"
-            />
-          </div>
+            <LoginHeader>
+              <LoginTitle>Welcome back</LoginTitle>
+              <LoginSubtitle>Sign in to your salon account</LoginSubtitle>
+            </LoginHeader>
 
-          <button
-            type="submit" disabled={loading}
-            className="w-full bg-[#1A1A18] text-white rounded-lg py-3 text-sm font-semibold disabled:opacity-50 hover:bg-[#2d2d2a] transition-colors"
-          >
-            {loading ? 'Logging in...' : 'Log in →'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
+            <Form onSubmit={handleSubmit}>
+              {error && <GlobalError>{error}</GlobalError>}
+
+              <FormGroup>
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  autoFocus
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+              </FormGroup>
+
+              <Button type="submit" fullWidth size="lg" disabled={isLoading}>
+                {isLoading ? <Spinner size={18} color={theme.colors.textInverse} /> : 'Sign in'}
+              </Button>
+            </Form>
+
+            <TestAccounts>
+              <TestAccountsLabel>Test accounts</TestAccountsLabel>
+              {TEST_ACCOUNTS.map((acc) => (
+                <TestAccountItem
+                  key={acc.email}
+                  onClick={() => { setEmail(acc.email); setPassword('password123'); }}
+                >
+                  <TestAccountRole>{acc.role}</TestAccountRole>
+                  <TestAccountEmail>{acc.email}</TestAccountEmail>
+                </TestAccountItem>
+              ))}
+            </TestAccounts>
+          </LoginBox>
+        </RightPanel>
+      </Page>
+    </>
+  );
 }

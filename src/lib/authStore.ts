@@ -1,41 +1,60 @@
-import { create } from 'zustand'
-import { api } from './api'
-import type { User } from './types'
+import { create } from 'zustand';
+import { User } from './types';
+import api from './api';
 
 interface AuthState {
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  loadStoredAuth: () => void
+  user: User | null;
+  accessToken: string | null;
+  isLoading: boolean;
+  isHydrated: boolean;
+
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  hydrate: () => Promise<void>;
+  setUser: (user: User) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: null,
-  isAuthenticated: false,
+  accessToken: null,
+  isLoading: false,
+  isHydrated: false,
 
-  loadStoredAuth: () => {
-    if (typeof window === 'undefined') return
-    const token = localStorage.getItem('auth_token')
-    const userStr = localStorage.getItem('auth_user')
-    if (token && userStr) {
-      set({ token, user: JSON.parse(userStr), isAuthenticated: true })
+  login: async (email, password) => {
+    set({ isLoading: true });
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      localStorage.setItem('accessToken', data.token);
+      set({ user: data.user, accessToken: data.token, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false });
+      throw err;
     }
   },
 
-  login: async (email, password) => {
-    const { data } = await api.post('/api/auth/login', { email, password })
-    localStorage.setItem('auth_token', data.token)
-    localStorage.setItem('auth_user', JSON.stringify(data.user))
-    set({ user: data.user, token: data.token, isAuthenticated: true })
+  logout: async () => {
+    try {
+      await api.post('/auth/logout', {});
+    } catch {}
+    localStorage.removeItem('accessToken');
+    set({ user: null, accessToken: null });
   },
 
-  logout: () => {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
-    set({ user: null, token: null, isAuthenticated: false })
-    window.location.href = '/login'
+  hydrate: async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      set({ isHydrated: true });
+      return;
+    }
+    try {
+      const { data } = await api.get('/auth/me');
+      set({ user: data, accessToken: token, isHydrated: true });
+    } catch {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      set({ user: null, accessToken: null, isHydrated: true });
+    }
   },
-}))
+
+  setUser: (user) => set({ user }),
+}));

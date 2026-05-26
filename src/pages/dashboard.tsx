@@ -1,143 +1,247 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useAuthStore } from '../lib/authStore'
-import { Layout } from '../components/Layout'
-import { api } from '../lib/api'
-import type { Salon, Booking } from '../lib/types'
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useAuthStore } from '../lib/authStore';
+import api from '../lib/api';
+import Layout, { PageHeader, PageTitle, PageSubtitle, PageActions } from '../components/Layout';
+import {
+  CardHeader, CardTitle, Button, Badge, Skeleton, Avatar,
+  StatValue, StatLabel, StatTrend, IconBox, EmptyState, Spinner,
+} from '../components/ui';
+import { theme } from '../lib/theme';
+import type { Booking, QueueEntry, Salon } from '../lib/types';
+import {
+  StatsGrid, StatCard, StatContent, ContentGrid,
+  BookingsCard, BookingsCardHeader, Table, TableRow, TableCell,
+  BookingName, BookingMeta, BookingPrice,
+  QueueCard, QueueCardHeader, QueueBody, QueueItem, QueuePosition, QueueInfo,
+  SalonSelector, SkeletonRow,
+} from './dashboard.styles';
 
-const STATUS_COLOR: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  COMPLETED: 'bg-green-100 text-green-700',
-  CANCELLED: 'bg-red-100 text-red-700',
-  NO_SHOW: 'bg-gray-100 text-gray-500',
+function statusBadge(status: string) {
+  const map: Record<string, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
+    CONFIRMED: 'success',
+    PENDING:   'warning',
+    COMPLETED: 'info',
+    CANCELLED: 'error',
+    NO_SHOW:   'default',
+  };
+  return map[status] || 'default';
 }
 
+function queueStatusBadge(status: string) {
+  const map: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+    WAITING: 'warning',
+    CALLED:  'info',
+    SERVING: 'success',
+  };
+  return (map[status] as any) || 'default';
+}
+
+const STATS = [
+  { key: 'todayBookings', label: "Today's Bookings",    icon: '◷', color: theme.colors.infoMuted },
+  { key: 'totalRevenue',  label: 'Total Revenue (JOD)', icon: '◈', color: theme.colors.primaryMuted },
+  { key: 'queueLength',   label: 'In Queue Now',        icon: '⋮⋮', color: theme.colors.warningMuted },
+  { key: 'avgRating',     label: 'Avg Rating',          icon: '★', color: theme.colors.successMuted },
+];
+
 export default function DashboardPage() {
-  const { user, isAuthenticated, loadStoredAuth, logout } = useAuthStore()
-  const [salons, setSalons] = useState<Salon[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const { user } = useAuthStore();
+  const [salons, setSalons]               = useState<Salon[]>([]);
+  const [selectedSalon, setSelectedSalon] = useState<string>('');
+  const [bookings, setBookings]           = useState<Booking[]>([]);
+  const [queue, setQueue]                 = useState<QueueEntry[]>([]);
+  const [loading, setLoading]             = useState(true);
+
+  const stats = {
+    todayBookings: bookings.filter((b) => {
+      const today = new Date();
+      return new Date(b.startTime).toDateString() === today.toDateString();
+    }).length,
+    totalRevenue: bookings
+      .filter((b) => b.status === 'COMPLETED')
+      .reduce((sum, b) => sum + b.totalPrice, 0)
+      .toFixed(1),
+    queueLength: queue.filter((q) => ['WAITING', 'CALLED', 'SERVING'].includes(q.status)).length,
+    avgRating: salons.find((s) => s.id === selectedSalon)?.rating?.toFixed(1) || '0.0',
+  };
+
+  useEffect(() => { fetchSalons(); }, []);
+  useEffect(() => { if (selectedSalon) fetchData(); }, [selectedSalon]);
 
   useEffect(() => {
-    loadStoredAuth()
-  }, [])
+    if (!selectedSalon) return;
+    const interval = setInterval(fetchQueue, 15000);
+    return () => clearInterval(interval);
+  }, [selectedSalon]);
 
-  useEffect(() => {
-    if (!isAuthenticated) { router.push('/login'); return }
-    api.get('/api/salons').then(({ data }) => setSalons(data.salons)).finally(() => setLoading(false))
-  }, [isAuthenticated])
+  const fetchSalons = async () => {
+    try {
+      const { data } = await api.get('/salons?limit=50');
+      setSalons(data.data || []);
+      if (data.data?.length > 0) setSelectedSalon(data.data[0].id);
+    } catch {}
+  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading dashboard…</div>
-      </div>
-    )
-  }
+  const fetchQueue = async () => {
+    try {
+      const { data } = await api.get(`/salons/${selectedSalon}/queue`);
+      setQueue(data);
+    } catch {}
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [bookingsRes, queueRes] = await Promise.all([
+        api.get(`/bookings?salonId=${selectedSalon}&limit=50`),
+        api.get(`/salons/${selectedSalon}/queue`),
+      ]);
+      setBookings(bookingsRes.data.data || []);
+      setQueue(queueRes.data || []);
+    } catch {}
+    setLoading(false);
+  };
+
+  const recentBookings = [...bookings]
+    .sort((a, b) => new Date(b.createdAt || b.startTime).getTime() - new Date(a.createdAt || a.startTime).getTime())
+    .slice(0, 8);
+
+  const activeQueue = queue.filter((q) => ['WAITING', 'CALLED', 'SERVING'].includes(q.status));
+
+  const now = new Date();
+  const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-      {/* Top nav */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">✂️</span>
-          <span className="font-semibold text-[#1A1A18]">BarberApp</span>
-          <span className="text-gray-300">|</span>
-          <span className="text-sm text-gray-500">Dashboard</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user?.fullName}</span>
-          <button onClick={logout} className="text-sm text-red-600 hover:underline">Log out</button>
-        </div>
-      </nav>
+    <Layout title="Dashboard">
+      <Head><title>Dashboard — Barber</title></Head>
 
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
-        {/* Welcome */}
+      <PageHeader>
         <div>
-          <h1 className="text-xl font-semibold text-[#1A1A18]">Welcome back, {user?.fullName?.split(' ')[0]} 👋</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Here's an overview of your salons</p>
+          <PageTitle>
+            {greeting}, <span>{user?.name?.split(' ')[0] || 'there'}</span> 👋
+          </PageTitle>
+          <PageSubtitle>Here's what's happening at your salon today.</PageSubtitle>
         </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Total salons', value: salons.length, icon: '🏪' },
-            { label: 'Active salons', value: salons.filter(s => s.status === 'ACTIVE').length, icon: '✅' },
-            { label: 'Total services', value: salons.reduce((sum, s) => sum + (s.services?.length ?? 0), 0), icon: '✂️' },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-5">
-              <div className="text-2xl mb-2">{stat.icon}</div>
-              <div className="text-2xl font-semibold text-[#1A1A18]">{stat.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Salons list */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-medium text-[#1A1A18]">Your salons</h2>
-            <button className="text-sm bg-[#1A1A18] text-white px-4 py-2 rounded-lg hover:bg-[#2d2d2a] transition-colors">
-              + Add salon
-            </button>
-          </div>
-
-          {salons.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-              <div className="text-4xl mb-3">✂️</div>
-              <p className="text-gray-500 text-sm">No salons yet. Add your first salon to get started.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {salons.map((salon) => (
-                <div key={salon.id} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-[#1A1A18]">{salon.name}</div>
-                    <div className="text-sm text-gray-500 mt-0.5">{salon.address}, {salon.city}</div>
-                    <div className="flex gap-2 mt-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        salon.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                        salon.status === 'PENDING_REVIEW' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-500'
-                      }`}>
-                        {salon.status.replace('_', ' ')}
-                      </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
-                        {salon.genderType}
-                      </span>
-                      {salon.walkInEnabled && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">Walk-in</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="text-sm border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors" onClick={() => router.push(`/salons/${salon.id}`)}>
-                      Manage →
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <PageActions>
+          {salons.length > 1 && (
+            <SalonSelector value={selectedSalon} onChange={(e) => setSelectedSalon(e.target.value)}>
+              {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </SalonSelector>
           )}
-        </div>
+          <Link href={`/salons/${selectedSalon}`} passHref>
+            <Button variant="secondary" size="sm" as="a">Manage Salon →</Button>
+          </Link>
+        </PageActions>
+      </PageHeader>
 
-        {/* Phase placeholders */}
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            { icon: '📅', title: 'Appointments', desc: 'Manage bookings — Phase 4', soon: true },
-            { icon: '🎫', title: 'Live Queue', desc: 'Walk-in queue view — Phase 5', soon: true },
-            { icon: '💳', title: 'Payments', desc: 'Revenue & payouts — Phase 6', soon: true },
-            { icon: '⭐', title: 'Reviews', desc: 'Customer feedback — Phase 6', soon: true },
-          ].map((card) => (
-            <div key={card.title} className="bg-white rounded-xl border border-dashed border-gray-200 p-5 opacity-60">
-              <div className="text-2xl mb-2">{card.icon}</div>
-              <div className="font-medium text-sm text-[#1A1A18]">{card.title}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{card.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+      <StatsGrid>
+        {STATS.map(({ key, label, icon, color }) => (
+          <StatCard key={key}>
+            <StatContent>
+              <StatLabel>{label}</StatLabel>
+              {loading
+                ? <Skeleton height="36px" width="80px" style={{ marginTop: 4 }} />
+                : <StatValue>{(stats as any)[key]}</StatValue>
+              }
+            </StatContent>
+            <IconBox color={color}>{icon}</IconBox>
+          </StatCard>
+        ))}
+      </StatsGrid>
+
+      <ContentGrid>
+        <BookingsCard>
+          <BookingsCardHeader>
+            <CardHeader>
+              <CardTitle>Recent Bookings</CardTitle>
+              <Link href="/bookings" passHref>
+                <Button variant="ghost" size="sm" as="a">View all →</Button>
+              </Link>
+            </CardHeader>
+          </BookingsCardHeader>
+
+          <Table>
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell flex={2}>
+                    <Skeleton height="14px" style={{ marginBottom: 6 }} />
+                    <Skeleton height="12px" width="60%" />
+                  </TableCell>
+                  <TableCell><Skeleton height="22px" width="70px" /></TableCell>
+                  <TableCell flex={0.6} align="right"><Skeleton height="14px" width="40px" /></TableCell>
+                </TableRow>
+              ))
+            ) : recentBookings.length === 0 ? (
+              <EmptyState>No bookings yet</EmptyState>
+            ) : (
+              recentBookings.map((b) => (
+                <TableRow key={b.id}>
+                  <TableCell flex={2}>
+                    <BookingName>{b.customer?.name || 'Customer'}</BookingName>
+                    <BookingMeta>
+                      {b.service?.name} · {new Date(b.startTime).toLocaleDateString('en-JO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </BookingMeta>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusBadge(b.status)} dot>{b.status.toLowerCase()}</Badge>
+                  </TableCell>
+                  <TableCell flex={0.7} align="right">
+                    <BookingPrice>{b.totalPrice} JOD</BookingPrice>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </Table>
+        </BookingsCard>
+
+        <QueueCard>
+          <QueueCardHeader>
+            <CardHeader>
+              <CardTitle>
+                Live Queue
+                {activeQueue.length > 0 && (
+                  <Badge variant="gold" style={{ marginLeft: theme.spacing['2'] }}>{activeQueue.length}</Badge>
+                )}
+              </CardTitle>
+              <Link href="/queue" passHref>
+                <Button variant="ghost" size="sm" as="a">Manage →</Button>
+              </Link>
+            </CardHeader>
+          </QueueCardHeader>
+
+          <QueueBody>
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <QueueItem key={i}>
+                  <Skeleton width="28px" height="28px" radius={theme.radius.sm} />
+                  <SkeletonRow>
+                    <Skeleton height="14px" style={{ marginBottom: 4 }} />
+                    <Skeleton height="12px" width="60%" />
+                  </SkeletonRow>
+                  <Skeleton width="60px" height="22px" />
+                </QueueItem>
+              ))
+            ) : activeQueue.length === 0 ? (
+              <EmptyState style={{ padding: `${theme.spacing['10']} 0` }}>Queue is empty</EmptyState>
+            ) : (
+              activeQueue.map((entry) => (
+                <QueueItem key={entry.id}>
+                  <QueuePosition>#{entry.position}</QueuePosition>
+                  <QueueInfo>
+                    <p>{entry.customer?.name || 'Customer'}</p>
+                    <p>{entry.service?.name || 'No service'} · ~{entry.estimatedWaitMin || 0} min</p>
+                  </QueueInfo>
+                  <Badge variant={queueStatusBadge(entry.status)} dot>
+                    {entry.status.toLowerCase()}
+                  </Badge>
+                </QueueItem>
+              ))
+            )}
+          </QueueBody>
+        </QueueCard>
+      </ContentGrid>
+    </Layout>
+  );
 }
