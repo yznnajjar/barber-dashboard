@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   compiler: {
-    // Disable Next.js built-in SC compiler — we use babel-plugin-styled-components
-    styledComponents: false,
+    styledComponents: true,
   },
   images: {
     domains: ['localhost'],

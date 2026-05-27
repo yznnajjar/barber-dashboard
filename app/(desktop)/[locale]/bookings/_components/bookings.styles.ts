@@ -1,0 +1,58 @@
+import { FONT_SIZE, FONT_WEIGHT } from '@/design-system';
+
+export const styles = {
+  filterRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+    mb: 2,
+    flexWrap: 'wrap',
+  },
+  colHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1.5,
+    p: 1.5,
+    px: 3,
+    fontSize: FONT_SIZE.XS,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: 'custom.textMuted',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  },
+  skeletonCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1.5,
+    p: 2,
+    px: 3,
+    bgcolor: 'background.paper',
+    border: 1,
+    borderColor: 'divider',
+    borderRadius: 1.25,
+    mb: 1,
+  },
+  bookingCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1.5,
+    p: 2,
+    px: 3,
+    bgcolor: 'background.paper',
+    border: 1,
+    borderColor: 'divider',
+    borderRadius: 1.25,
+    mb: 1,
+    '&:hover': { borderColor: 'custom.borderHover' },
+  },
+  actionBox: {
+    display: 'flex',
+    gap: 0.5,
+    justifyContent: 'flex-end',
+  },
+  emptyState: {
+    textAlign: 'center',
+    py: 16,
+    color: 'text.secondary',
+  },
+};

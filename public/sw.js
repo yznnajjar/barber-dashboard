@@ -1,5 +1,5 @@
-const CACHE_NAME = 'barber-v1';
-const STATIC_ASSETS = ['/', '/dashboard', '/offline.html'];
+const CACHE_NAME = 'barber-v2';
+const STATIC_ASSETS = ['/mweb/dashboard', '/mweb/bookings', '/mweb/queue', '/offline.html'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
