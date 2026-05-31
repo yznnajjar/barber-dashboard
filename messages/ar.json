@@ -1,0 +1,121 @@
+{
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "loading": "جارٍ التحميل",
+    "error": "حدث خطأ ما",
+    "search": "بحث",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "today": "اليوم",
+    "min": "دقيقة",
+    "minutes": "دقائق",
+    "viewAll": "عرض الكل",
+    "noData": "لا توجد بيانات بعد"
+  },
+  "nav": {
+    "main": "الرئيسية",
+    "manage": "إدارة",
+    "insights": "التحليلات",
+    "dashboard": "لوحة التحكم",
+    "calendar": "التقويم",
+    "queue": "قائمة الانتظار",
+    "services": "الخدمات",
+    "staff": "الموظفون",
+    "analytics": "التقارير",
+    "clients": "العملاء",
+    "logout": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "todayBookings": "حجوزات اليوم",
+    "todayRevenue": "إيرادات اليوم",
+    "queueLength": "طول القائمة",
+    "newClients": "عملاء جدد",
+    "upcoming": "المواعيد القادمة",
+    "quickActions": "إجراءات سريعة",
+    "addBooking": "إضافة حجز",
+    "openQueue": "فتح القائمة",
+    "recentActivity": "النشاط الأخير"
+  },
+  "calendar": {
+    "title": "التقويم",
+    "day": "يوم",
+    "week": "أسبوع",
+    "addAppointment": "إضافة موعد",
+    "details": "تفاصيل الموعد",
+    "reschedule": "إعادة جدولة",
+    "cancelBooking": "إلغاء",
+    "today": "اليوم",
+    "noBookings": "لا توجد مواعيد"
+  },
+  "queue": {
+    "title": "قائمة الانتظار المباشرة",
+    "callNext": "نادِ التالي",
+    "empty": "القائمة فارغة",
+    "emptySub": "سيظهر العملاء هنا عند انضمامهم.",
+    "waiting": "في الانتظار",
+    "estWait": "الوقت المتوقع",
+    "joined": "انضم",
+    "next": "التالي"
+  },
+  "services": {
+    "title": "الخدمات",
+    "addService": "إضافة خدمة",
+    "name": "الاسم",
+    "duration": "المدة",
+    "price": "السعر",
+    "active": "مفعّل",
+    "empty": "لا توجد خدمات بعد — أضف خدمتك الأولى",
+    "editService": "تعديل الخدمة"
+  },
+  "staff": {
+    "title": "الموظفون",
+    "addStaff": "إضافة موظف",
+    "profile": "الملف الشخصي",
+    "workingHours": "ساعات العمل",
+    "assignedServices": "الخدمات المعيّنة",
+    "role": "الدور"
+  },
+  "analytics": {
+    "title": "التقارير",
+    "today": "اليوم",
+    "week": "هذا الأسبوع",
+    "month": "هذا الشهر",
+    "totalRevenue": "إجمالي الإيرادات",
+    "totalBookings": "إجمالي الحجوزات",
+    "avgValue": "متوسط قيمة الحجز",
+    "revenueOverTime": "الإيرادات عبر الوقت",
+    "busyHours": "ساعات الذروة",
+    "topServices": "أبرز الخدمات",
+    "topClients": "أبرز العملاء",
+    "visits": "زيارة"
+  },
+  "clients": {
+    "title": "العملاء",
+    "searchPlaceholder": "ابحث بالاسم أو الهاتف",
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "visits": "الزيارات",
+    "lastVisit": "آخر زيارة",
+    "spend": "إجمالي الإنفاق",
+    "memberSince": "عضو منذ",
+    "history": "سجل الحجوزات",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "أضف ملاحظة عن هذا العميل…",
+    "avgSpend": "المتوسط لكل زيارة"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "welcome": "مرحبًا بعودتك",
+    "subtitle": "سجّل الدخول إلى لوحة صالونك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "remember": "تذكّرني",
+    "forgot": "نسيت كلمة المرور؟",
+    "demoHint": "الوضع التجريبي — أي بريد وكلمة مرور يعملان"
+  }
+}

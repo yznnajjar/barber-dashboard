@@ -1,0 +1,14 @@
+/* Font imports + base reset only — all component styles live in styled-components. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+html, body { margin: 0; padding: 0; }
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(6,9,17,0.12); border-radius: 999px; border: 2px solid #F3F1EF; }
+::-webkit-scrollbar-thumb:hover { background: rgba(6,9,17,0.22); }
+::-webkit-scrollbar-track { background: transparent; }

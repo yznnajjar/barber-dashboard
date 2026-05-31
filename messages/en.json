@@ -1,0 +1,121 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "loading": "Loading",
+    "error": "Something went wrong",
+    "search": "Search",
+    "close": "Close",
+    "confirm": "Confirm",
+    "today": "Today",
+    "min": "min",
+    "minutes": "minutes",
+    "viewAll": "View all",
+    "noData": "No data yet"
+  },
+  "nav": {
+    "main": "Main",
+    "manage": "Manage",
+    "insights": "Insights",
+    "dashboard": "Dashboard",
+    "calendar": "Calendar",
+    "queue": "Queue",
+    "services": "Services",
+    "staff": "Staff",
+    "analytics": "Analytics",
+    "clients": "Clients",
+    "logout": "Log out"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "todayBookings": "Today's Bookings",
+    "todayRevenue": "Today's Revenue",
+    "queueLength": "Queue Length",
+    "newClients": "New Clients",
+    "upcoming": "Upcoming Appointments",
+    "quickActions": "Quick Actions",
+    "addBooking": "Add Booking",
+    "openQueue": "Open Queue",
+    "recentActivity": "Recent Activity"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "day": "Day",
+    "week": "Week",
+    "addAppointment": "Add Appointment",
+    "details": "Appointment Details",
+    "reschedule": "Reschedule",
+    "cancelBooking": "Cancel",
+    "today": "Today",
+    "noBookings": "No appointments"
+  },
+  "queue": {
+    "title": "Live Queue",
+    "callNext": "Call Next",
+    "empty": "Queue is empty",
+    "emptySub": "Walk-ins will appear here as they join.",
+    "waiting": "waiting",
+    "estWait": "est. wait",
+    "joined": "joined",
+    "next": "Next up"
+  },
+  "services": {
+    "title": "Services",
+    "addService": "Add Service",
+    "name": "Name",
+    "duration": "Duration",
+    "price": "Price",
+    "active": "Active",
+    "empty": "No services yet — add your first service",
+    "editService": "Edit Service"
+  },
+  "staff": {
+    "title": "Staff",
+    "addStaff": "Add Staff",
+    "profile": "Profile",
+    "workingHours": "Working Hours",
+    "assignedServices": "Assigned Services",
+    "role": "Role"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "today": "Today",
+    "week": "This Week",
+    "month": "This Month",
+    "totalRevenue": "Total Revenue",
+    "totalBookings": "Total Bookings",
+    "avgValue": "Avg. Booking Value",
+    "revenueOverTime": "Revenue Over Time",
+    "busyHours": "Busy Hours",
+    "topServices": "Top Services",
+    "topClients": "Top Clients",
+    "visits": "visits"
+  },
+  "clients": {
+    "title": "Clients",
+    "searchPlaceholder": "Search by name or phone",
+    "name": "Name",
+    "phone": "Phone",
+    "visits": "Visits",
+    "lastVisit": "Last Visit",
+    "spend": "Total Spend",
+    "memberSince": "Member since",
+    "history": "Booking History",
+    "notes": "Notes",
+    "notesPlaceholder": "Add a note about this client…",
+    "avgSpend": "Avg. per visit"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "welcome": "Welcome back",
+    "subtitle": "Sign in to your salon dashboard",
+    "email": "Email",
+    "password": "Password",
+    "remember": "Remember me",
+    "forgot": "Forgot password?",
+    "demoHint": "Demo mode — any email & password works"
+  }
+}
