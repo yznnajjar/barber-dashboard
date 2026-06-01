@@ -1,6 +1,13 @@
 import { STATUS_COLORS } from '@/lib/colors'
 import type { BookingStatus } from '@/types'
 
+export const CALENDAR_VIEWS = {
+  DAY: 'day',
+  WEEK: 'week',
+} as const
+
+export type CalendarView = typeof CALENDAR_VIEWS[keyof typeof CALENDAR_VIEWS]
+
 export const START_HOUR = 9
 export const END_HOUR = 20
 export const PX_PER_MIN = 1 // 60px per hour row

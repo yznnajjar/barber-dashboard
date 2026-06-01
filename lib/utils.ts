@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns'
+import type { Booking } from '@/types'
 
 /* ────────────────────────── Money ────────────────────────── */
 
@@ -50,6 +51,43 @@ export const timeStringToDate = (hhmm: string): Date => {
 /** Date → 'HH:mm' (from MUI TimePicker), with a safe fallback. */
 export const dateToTimeString = (d: Date | null, fallback = '09:00'): string =>
   d ? `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}` : fallback
+
+/** ISO datetime → UTC 'HH:mm'. */
+export const isoToUtcTime = (iso: string): string => {
+  const d = new Date(iso)
+  return minutesToTime(d.getUTCHours() * 60 + d.getUTCMinutes())
+}
+
+/** Returns updated startTime / endTime / date for an optimistic reschedule. */
+export const applyReschedule = (
+  booking: { startTime: string; endTime: string },
+  startAt: string,
+) => {
+  const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
+  const newStart = isoToUtcTime(startAt)
+  return {
+    date: startAt.split('T')[0],
+    startTime: newStart,
+    endTime: minutesToTime(timeToMinutes(newStart) + duration),
+  }
+}
+
+/** Builds a UTC ISO startAt string from a booking date and a TimePicker Date. */
+export const buildStartAt = (date: string, time: Date): string => {
+  const startMin = time.getHours() * 60 + time.getMinutes()
+  return `${date}T${minutesToTime(startMin)}:00.000Z`
+}
+
+/** Returns the display rows for the appointment detail drawer. */
+export const getBookingDetailRows = (booking: Booking): [string, string][] => {
+  const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
+  return [
+    ['Service', booking.serviceName],
+    ['Time', `${formatTime12(booking.startTime)} – ${formatTime12(booking.endTime)}`],
+    ['Duration', formatDuration(duration)],
+    ['Deposit', booking.depositPaid ? 'Paid' : 'Not paid'],
+  ]
+}
 
 /* ────────────────────────── Avatars / identity ────────────────────────── */
 

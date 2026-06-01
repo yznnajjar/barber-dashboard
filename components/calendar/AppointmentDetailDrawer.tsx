@@ -1,15 +1,17 @@
 'use client'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Drawer, Box, Typography, IconButton, Divider, Stack, Button } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Divider, Button } from '@mui/material'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import { useCancelBooking } from '@/hooks/mutations/useCancelBooking'
 import { useRescheduleBooking } from '@/hooks/mutations/useRescheduleBooking'
-import { formatTime12, formatDuration, timeToMinutes, minutesToTime, timeStringToDate, dateToTimeString } from '@/lib/utils'
+import { timeStringToDate, buildStartAt, getBookingDetailRows } from '@/lib/utils'
+import { BOOKING_STATUS_CANCELLED } from '@/constants'
 import UserAvatar from '@/components/shared/UserAvatar'
 import StatusChip from '@/components/shared/StatusChip'
 import { DrawerHead } from './CalendarView.styled'
+import { CustomerRow, DetailRows, DetailRow, DetailLabel, DetailValue, RescheduleBox, ActionsRow } from './AppointmentDetailDrawer.styled'
 import type { Booking } from '@/types'
 
 export default function AppointmentDetailDrawer({ booking, onClose }: { booking: Booking | null; onClose: () => void }) {
@@ -20,20 +22,12 @@ export default function AppointmentDetailDrawer({ booking, onClose }: { booking:
 
   if (!booking) return <Drawer anchor="right" open={false} onClose={onClose} />
 
-  const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
-  const rows: [string, string][] = [
-    ['Service', booking.serviceName],
-    ['Time', `${formatTime12(booking.startTime)} – ${formatTime12(booking.endTime)}`],
-    ['Duration', formatDuration(duration)],
-    ['Deposit', booking.depositPaid ? 'Paid' : 'Not paid'],
-  ]
+  const rows = getBookingDetailRows(booking)
 
   const saveReschedule = () => {
     if (!rescheduleAt) return
-    const startMin = rescheduleAt.getHours() * 60 + rescheduleAt.getMinutes()
-    const startAt = `${booking.date}T${minutesToTime(startMin)}:00.000Z`
     reschedule.mutate(
-      { id: booking.id, startAt },
+      { id: booking.id, startAt: buildStartAt(booking.date, rescheduleAt) },
       { onSuccess: () => { setRescheduleAt(null); onClose() } },
     )
   }
@@ -46,44 +40,44 @@ export default function AppointmentDetailDrawer({ booking, onClose }: { booking:
       </DrawerHead>
 
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <CustomerRow>
           <UserAvatar name={booking.customerName} color={booking.avatarColor} size="lg" />
           <Box sx={{ flex: 1 }}>
             <Typography variant="h3">{booking.customerName}</Typography>
             <StatusChip status={booking.status} />
           </Box>
-        </Box>
+        </CustomerRow>
 
-        <Stack spacing={1.5}>
+        <DetailRows>
           {rows.map(([label, value]) => (
-            <Box key={label} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>{label}</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>{value}</Typography>
-            </Box>
+            <DetailRow key={label}>
+              <DetailLabel>{label}</DetailLabel>
+              <DetailValue>{value}</DetailValue>
+            </DetailRow>
           ))}
-        </Stack>
+        </DetailRows>
 
         {rescheduleAt !== null && (
-          <Box sx={{ mt: 2.5 }}>
+          <RescheduleBox>
             <TimePicker label={t('reschedule')} value={rescheduleAt} onChange={(d) => d && setRescheduleAt(d)} slotProps={{ textField: { fullWidth: true, size: 'small' } }} />
             <Button fullWidth variant="contained" sx={{ mt: 1.5 }} disabled={reschedule.isPending} onClick={saveReschedule}>Save new time</Button>
-          </Box>
+          </RescheduleBox>
         )}
 
         <Divider sx={{ my: 2.5 }} />
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <ActionsRow>
           <Button variant="outlined" fullWidth onClick={() => setRescheduleAt(timeStringToDate(booking.startTime))}>
             {t('reschedule')}
           </Button>
           <Button
             variant="outlined" color="error" fullWidth
-            disabled={booking.status === 'CANCELLED' || cancel.isPending}
+            disabled={booking.status === BOOKING_STATUS_CANCELLED || cancel.isPending}
             onClick={() => cancel.mutate(booking.id, { onSuccess: onClose })}
           >
             {t('cancelBooking')}
           </Button>
-        </Box>
+        </ActionsRow>
       </Box>
     </Drawer>
   )

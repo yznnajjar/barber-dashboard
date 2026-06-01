@@ -32,7 +32,7 @@ function splitIso(iso: string): { date: string; time: string } {
   if (!iso) return { date: '', time: '' }
   const d = new Date(iso)
   const date = d.toISOString().slice(0, 10)
-  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const time = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
   return { date, time }
 }
 
