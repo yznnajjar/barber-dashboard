@@ -5,7 +5,6 @@ import { Box, Button, Skeleton } from '@mui/material'
 import AddRounded from '@mui/icons-material/AddRounded'
 import { useStaff } from '@/hooks/queries/useStaff'
 import { useServices } from '@/hooks/queries/useServices'
-import { MOCK_SALON_ID } from '@/constants'
 import PageHeader from '@/components/shared/PageHeader'
 import ErrorState from '@/components/shared/ErrorState'
 import StaffCard from './StaffCard'
@@ -22,8 +21,8 @@ const blankStaff = (): StaffMember => ({
 
 export default function StaffView() {
   const t = useTranslations('staff')
-  const { data: staff, isLoading, isError } = useStaff(MOCK_SALON_ID)
-  const { data: services } = useServices(MOCK_SALON_ID)
+  const { data: staff, isLoading, isError } = useStaff()
+  const { data: services } = useServices()
   const [selected, setSelected] = useState<StaffMember | null>(null)
 
   const serviceName = (id: string) => services?.find((s) => s.id === id)?.name ?? id

@@ -13,7 +13,7 @@ import InsightsRounded from '@mui/icons-material/InsightsRounded'
 import PeopleAltRounded from '@mui/icons-material/PeopleAltRounded'
 import { useClients } from '@/hooks/queries/useClients'
 import {
-  MOCK_SALON_ID, ROUTE_DASHBOARD, ROUTE_CALENDAR, ROUTE_QUEUE,
+  ROUTE_DASHBOARD, ROUTE_CALENDAR, ROUTE_QUEUE,
   ROUTE_SERVICES, ROUTE_STAFF, ROUTE_ANALYTICS, ROUTE_CLIENTS,
 } from '@/constants'
 import UserAvatar from '@/components/shared/UserAvatar'
@@ -30,7 +30,7 @@ export default function CommandModal({ open, onClose }: { open: boolean; onClose
   const common = useTranslations('common')
   const router = useRouter()
   const [q, setQ] = useState('')
-  const { data: clients } = useClients(MOCK_SALON_ID)
+  const { data: clients } = useClients()
 
   useEffect(() => { if (!open) setQ('') }, [open])
 

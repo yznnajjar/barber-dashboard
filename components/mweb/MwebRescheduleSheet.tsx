@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@mui/material'
 import ContentCutRounded from '@mui/icons-material/ContentCutRounded'
 import { useStaff } from '@/hooks/queries/useStaff'
-import { MOCK_SALON_ID } from '@/constants'
 import { formatTime12, timeToMinutes, minutesToTime } from '@/lib/utils'
 import { START_HOUR, END_HOUR, SNAP_MINUTES } from '@/components/calendar/calendarConfig'
 import UserAvatar from '@/components/shared/UserAvatar'
@@ -64,7 +63,7 @@ interface Props {
 
 export default function MwebRescheduleSheet({ booking, onClose, onSave }: Props) {
   const tc = useTranslations('common')
-  const { data: staff } = useStaff(MOCK_SALON_ID)
+  const { data: staff } = useStaff()
 
   const [startMin, setStartMin] = useState(0)
   const [staffId, setStaffId] = useState('')

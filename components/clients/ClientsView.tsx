@@ -5,7 +5,7 @@ import { Box, Card, TextField, InputAdornment, Skeleton } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import SearchRounded from '@mui/icons-material/SearchRounded'
 import { useClients } from '@/hooks/queries/useClients'
-import { MOCK_SALON_ID, DEFAULT_PAGE_SIZE } from '@/constants'
+import { DEFAULT_PAGE_SIZE } from '@/constants'
 import PageHeader from '@/components/shared/PageHeader'
 import ErrorState from '@/components/shared/ErrorState'
 import ClientProfileDrawer from './ClientProfileDrawer'
@@ -15,7 +15,7 @@ import type { Client } from '@/types'
 
 export default function ClientsView() {
   const t = useTranslations('clients')
-  const { data: clients, isLoading, isError } = useClients(MOCK_SALON_ID)
+  const { data: clients, isLoading, isError } = useClients()
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<Client | null>(null)
 

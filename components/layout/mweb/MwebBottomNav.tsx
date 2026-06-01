@@ -1,9 +1,10 @@
 'use client'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useQueue } from '@/hooks/queries/useQueue'
 import {
-  MOCK_SALON_ID, ROUTE_MWEB_DASHBOARD, ROUTE_MWEB_QUEUE,
+  ROUTE_MWEB_DASHBOARD, ROUTE_MWEB_QUEUE,
   ROUTE_MWEB_CALENDAR, ROUTE_MWEB_PROFILE, MWEB_LANG_PARAM,
 } from '@/constants'
 import { mwebHref, normalizeLocale } from '@/lib/mwebNav'
@@ -18,7 +19,7 @@ export default function MwebBottomNav() {
   const pathname = usePathname()
   const params = useSearchParams()
   const locale = normalizeLocale(params.get(MWEB_LANG_PARAM))
-  const { data: queue } = useQueue(MOCK_SALON_ID)
+  const { data: queue } = useQueue()
 
   const tabs = [
     { href: ROUTE_MWEB_DASHBOARD, label: t('dashboard'), icon: <GridViewRounded sx={{ fontSize: 22 }} /> },
@@ -32,7 +33,7 @@ export default function MwebBottomNav() {
   return (
     <PwaBottomNav>
       {tabs.map((tab) => (
-        <NavTab as="a" key={tab.href} href={mwebHref(tab.href, locale)} $active={isActive(tab.href)}>
+        <NavTab as={Link} key={tab.href} href={mwebHref(tab.href, locale)} $active={isActive(tab.href)}>
           <span className="ico-wrap">
             {tab.icon}
             {tab.badge ? <span className="badge">{tab.badge}</span> : null}

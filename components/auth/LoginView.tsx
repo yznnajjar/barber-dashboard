@@ -2,12 +2,14 @@
 import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/routing'
-import { Button } from '@mui/material'
+import { Button, CircularProgress } from '@mui/material'
 import MailOutline from '@mui/icons-material/MailOutline'
 import LockOutlined from '@mui/icons-material/LockOutlined'
 import ErrorOutlineRounded from '@mui/icons-material/ErrorOutlineRounded'
 import { useAuthStore } from '@/store/authStore'
-import { ROUTE_DASHBOARD, LOCALE_EN, LOCALE_AR } from '@/constants'
+import { authApi } from '@/lib/api'
+import { ROUTE_DASHBOARD, LOCALE_EN, LOCALE_AR, DEFAULT_LOGIN_EMAIL, DEFAULT_LOGIN_PASSWORD } from '@/constants'
+import type { Role } from '@/types'
 import {
   Shell, BrandPanel, FormPanel, LangToggle, Field, InputWrap, FieldError, OrDivider, SocialBtn,
   WelcomeTitle, WelcomeSubtitle, ForgotRow, TextLink, SocialStack, TestimonialAvatar,
@@ -20,20 +22,38 @@ export default function LoginView() {
   const locale = useLocale()
   const setAuth = useAuthStore((s) => s.setAuth)
 
-  const [email, setEmail] = useState('owner@najjarcuts.jo')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState(DEFAULT_LOGIN_EMAIL)
+  const [password, setPassword] = useState(DEFAULT_LOGIN_PASSWORD)
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const setLocale = (next: string) => router.replace(pathname, { locale: next })
 
-  const submit = () => {
+  const submit = async () => {
     if (!email.trim() || !password.trim()) {
       setError('Enter your email and password to continue.')
       return
     }
-    setAuth('demo-token', { id: 'usr_owner', name: 'Yousef Najjar', email, role: 'SALON_OWNER' })
-    router.replace(ROUTE_DASHBOARD)
+    setLoading(true)
+    setError('')
+    try {
+      const result = await authApi.login(email, password)
+      setAuth(result.accessToken, result.refreshToken, {
+        id: result.userId,
+        name: email,
+        email,
+        role: result.role as Role,
+        salonId: result.salonId,
+      })
+      router.replace(ROUTE_DASHBOARD)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        || 'Invalid credentials. Please try again.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -106,8 +126,8 @@ export default function LoginView() {
             <TextLink>{t('forgot')}</TextLink>
           </ForgotRow>
 
-          <Button fullWidth variant="contained" onClick={submit} sx={{ height: 50, borderRadius: '10px', fontSize: 15 }}>
-            {t('signIn')}
+          <Button fullWidth variant="contained" onClick={submit} disabled={loading} sx={{ height: 50, borderRadius: '10px', fontSize: 15 }}>
+            {loading ? <CircularProgress size={22} color="inherit" /> : t('signIn')}
           </Button>
 
           <OrDivider>or</OrDivider>

@@ -10,14 +10,13 @@ import CloseRounded from '@mui/icons-material/CloseRounded'
 import { useServices } from '@/hooks/queries/useServices'
 import { useStaff } from '@/hooks/queries/useStaff'
 import { useCreateBooking } from '@/hooks/mutations/useCreateBooking'
-import { MOCK_SALON_ID } from '@/constants'
 import { addMinutes, format } from 'date-fns'
 
 export default function BookingFormDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useTranslations('calendar')
   const common = useTranslations('common')
-  const { data: services } = useServices(MOCK_SALON_ID)
-  const { data: staff } = useStaff(MOCK_SALON_ID)
+  const { data: services } = useServices()
+  const { data: staff } = useStaff()
   const create = useCreateBooking()
 
   const [customerName, setCustomerName] = useState('')
@@ -31,17 +30,13 @@ export default function BookingFormDrawer({ open, onClose }: { open: boolean; on
   const save = () => {
     const svc = services?.find((s) => s.id === serviceId)
     if (!customerName.trim() || !svc || !staffId || !date || !start) return
-    const endDate = addMinutes(start, svc.duration)
+    const startAt = `${format(date, 'yyyy-MM-dd')}T${format(start, 'HH:mm')}:00.000Z`
     create.mutate(
       {
-        customerId: `c_${Date.now()}`,
         customerName: customerName.trim(),
         staffId,
         serviceId: svc.id,
-        serviceName: svc.name,
-        date: format(date, 'yyyy-MM-dd'),
-        startTime: format(start, 'HH:mm'),
-        endTime: format(endDate, 'HH:mm'),
+        startAt,
       },
       { onSuccess: () => { reset(); onClose() } },
     )

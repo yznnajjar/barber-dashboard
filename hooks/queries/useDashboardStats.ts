@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { mockApi } from '@/lib/mockApi'
+import { dashboardApi } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { QUERY_KEY_DASHBOARD_STATS, STALE_TIME_STATS } from '@/constants'
 
-export const useDashboardStats = (salonId: string) =>
-  useQuery({
+export const useDashboardStats = () => {
+  const salonId = useAuthStore((s) => s.salonId)
+  return useQuery({
     queryKey: [QUERY_KEY_DASHBOARD_STATS, salonId],
-    queryFn: () => mockApi.getDashboardStats(),
+    queryFn: () => dashboardApi.getOverview().then((r) => r.stats),
     enabled: !!salonId,
     staleTime: STALE_TIME_STATS,
   })
+}

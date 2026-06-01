@@ -7,7 +7,6 @@ import CalendarMonthRounded from '@mui/icons-material/CalendarMonthRounded'
 import PersonAddAlt1Rounded from '@mui/icons-material/PersonAddAlt1Rounded'
 import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded'
 import { useAnalytics } from '@/hooks/queries/useAnalytics'
-import { MOCK_SALON_ID } from '@/constants'
 import { formatJDCompact } from '@/lib/utils'
 import PageHeader from '@/components/shared/PageHeader'
 import StatCard from '@/components/shared/StatCard'
@@ -24,7 +23,7 @@ const ICON = { fontSize: 20 } as const
 export default function AnalyticsView() {
   const t = useTranslations('analytics')
   const [period, setPeriod] = useState<AnalyticsPeriod>('week')
-  const { data, isLoading, isError } = useAnalytics(MOCK_SALON_ID, period)
+  const { data, isLoading, isError } = useAnalytics(period)
 
   if (isError) return <ErrorState />
 

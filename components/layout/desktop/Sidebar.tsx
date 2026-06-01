@@ -4,7 +4,7 @@ import { usePathname, Link } from '@/i18n/routing'
 import { useAuthStore } from '@/store/authStore'
 import { useQueue } from '@/hooks/queries/useQueue'
 import {
-  MOCK_SALON_ID, ROUTE_DASHBOARD, ROUTE_CALENDAR, ROUTE_QUEUE,
+  ROUTE_DASHBOARD, ROUTE_CALENDAR, ROUTE_QUEUE,
   ROUTE_SERVICES, ROUTE_STAFF, ROUTE_ANALYTICS, ROUTE_CLIENTS,
 } from '@/constants'
 import GridViewRounded from '@mui/icons-material/GridViewRounded'
@@ -23,7 +23,7 @@ export default function Sidebar() {
   const t = useTranslations('nav')
   const pathname = usePathname()
   const user = useAuthStore((s) => s.user)
-  const { data: queue } = useQueue(MOCK_SALON_ID)
+  const { data: queue } = useQueue()
 
   const sections = [
     {
@@ -64,13 +64,11 @@ export default function Sidebar() {
         <div key={section.label}>
           <SectionLabel>{section.label}</SectionLabel>
           {section.items.map((item) => (
-            <Link key={item.href} href={item.href} passHref legacyBehavior>
-              <NavItem $active={isActive(item.href)}>
-                {item.icon}
-                <span>{item.label}</span>
-                {item.badge ? <span className="badge">{item.badge}</span> : null}
-              </NavItem>
-            </Link>
+            <NavItem key={item.href} as={Link} href={item.href} $active={isActive(item.href)}>
+              {item.icon}
+              <span>{item.label}</span>
+              {item.badge ? <span className="badge">{item.badge}</span> : null}
+            </NavItem>
           ))}
         </div>
       ))}

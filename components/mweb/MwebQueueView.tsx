@@ -7,7 +7,6 @@ import GroupsRounded from '@mui/icons-material/GroupsRounded'
 import { useQueue } from '@/hooks/queries/useQueue'
 import { useCallNext } from '@/hooks/mutations/useCallNext'
 import { useRemoveFromQueue } from '@/hooks/mutations/useRemoveFromQueue'
-import { MOCK_SALON_ID } from '@/constants'
 import EmptyState from '@/components/shared/EmptyState'
 import { SectionHead } from '@/components/layout/mweb/MwebShell.styled'
 import MwebQueueRow from './MwebQueueRow'
@@ -30,7 +29,7 @@ const StickyCta = styled.div`
 
 export default function MwebQueueView() {
   const t = useTranslations('queue')
-  const { data: queue, isLoading } = useQueue(MOCK_SALON_ID)
+  const { data: queue, isLoading } = useQueue()
   const callNext = useCallNext()
   const removeFromQueue = useRemoveFromQueue()
   const [selected, setSelected] = useState<QueueEntry | null>(null)

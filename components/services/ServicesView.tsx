@@ -6,7 +6,6 @@ import AddRounded from '@mui/icons-material/AddRounded'
 import ContentCutRounded from '@mui/icons-material/ContentCutRounded'
 import { useServices } from '@/hooks/queries/useServices'
 import { useDeleteService } from '@/hooks/mutations/useDeleteService'
-import { MOCK_SALON_ID } from '@/constants'
 import PageHeader from '@/components/shared/PageHeader'
 import EmptyState from '@/components/shared/EmptyState'
 import ErrorState from '@/components/shared/ErrorState'
@@ -18,7 +17,7 @@ import type { Service } from '@/types'
 export default function ServicesView() {
   const t = useTranslations('services')
   const common = useTranslations('common')
-  const { data: services, isLoading, isError } = useServices(MOCK_SALON_ID)
+  const { data: services, isLoading, isError } = useServices()
   const remove = useDeleteService()
 
   const [editing, setEditing] = useState<Service | null>(null)

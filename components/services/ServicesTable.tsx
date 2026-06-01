@@ -45,7 +45,7 @@ export default function ServicesTable({ services, onEdit, onDelete }: Props) {
             <TableCell>{formatDuration(s.duration)}</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>{formatJD(s.price)}</TableCell>
             <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-              <Switch checked={s.isActive} onChange={() => toggle.mutate(s.id)} />
+              <Switch checked={s.isActive} onChange={() => toggle.mutate({ id: s.id, isActive: !s.isActive })} />
             </TableCell>
             <TableCell align="right" onClick={(e) => e.stopPropagation()}>
               <IconButton size="small" color="error" onClick={() => onDelete(s)}>

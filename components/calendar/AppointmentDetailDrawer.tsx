@@ -31,8 +31,9 @@ export default function AppointmentDetailDrawer({ booking, onClose }: { booking:
   const saveReschedule = () => {
     if (!rescheduleAt) return
     const startMin = rescheduleAt.getHours() * 60 + rescheduleAt.getMinutes()
+    const startAt = `${booking.date}T${minutesToTime(startMin)}:00.000Z`
     reschedule.mutate(
-      { id: booking.id, startTime: minutesToTime(startMin), endTime: minutesToTime(startMin + duration) },
+      { id: booking.id, startAt },
       { onSuccess: () => { setRescheduleAt(null); onClose() } },
     )
   }

@@ -11,7 +11,11 @@ export const formatJDCompact = (amount: number): string =>
 
 /* ────────────────────────── Dates & times ────────────────────────── */
 
-export const formatDate = (iso: string): string => format(parseISO(iso), 'dd/MM/yyyy')
+export const formatDate = (iso: string | null | undefined): string => {
+  if (!iso) return '—'
+  const d = parseISO(iso)
+  return isNaN(d.getTime()) ? '—' : format(d, 'dd/MM/yyyy')
+}
 
 /** Date → 'yyyy-MM-dd' key (matches Booking.date). */
 export const dayKey = (d: Date): string => format(d, 'yyyy-MM-dd')

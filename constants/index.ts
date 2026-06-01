@@ -1,3 +1,7 @@
+// ---- Dev / demo credentials ----
+export const DEFAULT_LOGIN_EMAIL = 'owner@salon.com'
+export const DEFAULT_LOGIN_PASSWORD = 'password123'
+
 // ---- React Query keys ----
 export const QUERY_KEY_BOOKINGS = 'bookings'
 export const QUERY_KEY_QUEUE = 'queue'
@@ -72,6 +76,3 @@ export const STALE_TIME_DEFAULT = 1000 * 60 * 2
 export const STALE_TIME_QUEUE = 0
 export const STALE_TIME_STATS = 1000 * 60 * 5
 
-// ---- Mock layer ----
-export const MOCK_SALON_ID = 'salon_001'
-export const MOCK_LATENCY_MS = 450

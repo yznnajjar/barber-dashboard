@@ -10,8 +10,9 @@ import AddRounded from '@mui/icons-material/AddRounded'
 import { useDashboardStats } from '@/hooks/queries/useDashboardStats'
 import { useBookings } from '@/hooks/queries/useBookings'
 import { useActivity } from '@/hooks/queries/useActivity'
-import { MOCK_SALON_ID, BOOKING_STATUS_CANCELLED } from '@/constants'
+import { BOOKING_STATUS_CANCELLED } from '@/constants'
 import { formatJDCompact } from '@/lib/utils'
+import { format } from 'date-fns'
 import PageHeader from '@/components/shared/PageHeader'
 import StatCard from '@/components/shared/StatCard'
 import ErrorState from '@/components/shared/ErrorState'
@@ -25,9 +26,10 @@ const ICON = { fontSize: 20 } as const
 export default function DashboardView() {
   const t = useTranslations('dashboard')
   const [bookingOpen, setBookingOpen] = useState(false)
-  const { data: stats, isLoading: statsLoading, isError } = useDashboardStats(MOCK_SALON_ID)
-  const { data: bookings, isLoading: bookingsLoading } = useBookings(MOCK_SALON_ID)
-  const { data: activity } = useActivity(MOCK_SALON_ID)
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const { data: stats, isLoading: statsLoading, isError } = useDashboardStats()
+  const { data: bookings, isLoading: bookingsLoading } = useBookings(today)
+  const { data: activity } = useActivity()
 
   const upcoming = useMemo(
     () =>

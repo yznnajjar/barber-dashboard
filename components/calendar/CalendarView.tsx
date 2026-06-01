@@ -15,7 +15,6 @@ import { addDays, startOfWeek, format } from 'date-fns'
 import { useBookings } from '@/hooks/queries/useBookings'
 import { useStaff } from '@/hooks/queries/useStaff'
 import { useRescheduleBooking } from '@/hooks/mutations/useRescheduleBooking'
-import { MOCK_SALON_ID } from '@/constants'
 import { formatTime12, formatDuration, dayKey, timeToMinutes, minutesToTime } from '@/lib/utils'
 import { blockColors } from './calendarConfig'
 import {
@@ -42,8 +41,9 @@ export default function CalendarView() {
   const [dragging, setDragging] = useState<Booking | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
-  const { data: bookings, isLoading, isError } = useBookings(MOCK_SALON_ID)
-  const { data: staff } = useStaff(MOCK_SALON_ID)
+  const dateKey = format(anchor, 'yyyy-MM-dd')
+  const { data: bookings, isLoading, isError } = useBookings(dateKey, view)
+  const { data: staff } = useStaff()
   const reschedule = useRescheduleBooking()
 
   // Require a few px of movement before a drag starts, so a click still opens the drawer.
@@ -84,14 +84,9 @@ export default function CalendarView() {
 
     if (deltaMin === 0 && !movedColumn) return // no real change
 
+    const newStartAt = `${booking.date}T${minutesToTime(newStart)}:00.000Z`
     reschedule.mutate(
-      {
-        id: booking.id,
-        startTime: minutesToTime(newStart),
-        endTime: minutesToTime(newStart + duration),
-        // staffId only meaningful in day view; week-view columns are dates.
-        ...(view === 'day' && movedColumn ? { staffId: targetColumn! } : {}),
-      },
+      { id: booking.id, startAt: newStartAt },
       {
         onSuccess: () =>
           setToast(`${booking.customerName} → ${formatTime12(minutesToTime(newStart))}`),

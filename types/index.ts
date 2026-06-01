@@ -1,10 +1,13 @@
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
 
+export type Role = 'SALON_OWNER' | 'STAFF' | 'ADMIN'
+
 export interface User {
   id: string
   name: string
   email: string
-  role: 'CUSTOMER' | 'SALON_OWNER' | 'ADMIN'
+  role: Role
+  salonId: string | null
 }
 
 export interface Salon {

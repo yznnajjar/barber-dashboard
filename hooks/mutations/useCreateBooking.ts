@@ -1,30 +1,42 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { QUERY_KEY_BOOKINGS, MOCK_SALON_ID, BOOKING_STATUS_CONFIRMED } from '@/constants'
-import type { Booking } from '@/types'
+import { bookingsApi, clientsApi } from '@/lib/api'
+import { QUERY_KEY_BOOKINGS, QUERY_KEY_CLIENTS, QUERY_KEY_DASHBOARD_STATS } from '@/constants'
 
-export type NewBooking = Omit<Booking, 'id' | 'status' | 'depositPaid' | 'avatarColor'>
+interface NewBooking {
+  customerName: string
+  phone?: string
+  staffId: string
+  serviceId: string
+  startAt: string // ISO datetime
+}
 
 export const useCreateBooking = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: NewBooking) =>
-      new Promise<Booking>((res) =>
-        setTimeout(
-          () =>
-            res({
-              ...input,
-              id: `bk_${Date.now()}`,
-              status: BOOKING_STATUS_CONFIRMED as Booking['status'],
-              depositPaid: false,
-              avatarColor: ((Date.now() % 8) + 1),
-            }),
-          250,
-        ),
-      ),
-    onSuccess: (booking) => {
-      queryClient.setQueryData<Booking[]>([QUERY_KEY_BOOKINGS, MOCK_SALON_ID], (prev) =>
-        prev ? [...prev, booking] : [booking],
-      )
+    mutationFn: async (input: NewBooking) => {
+      let clientId = ''
+      if (input.customerName.trim()) {
+        try {
+          const client = await clientsApi.create({
+            fullName: input.customerName.trim(),
+            phone: input.phone || '',
+          })
+          clientId = client.id
+        } catch {
+          // proceed without clientId if creation fails
+        }
+      }
+      return bookingsApi.create({
+        clientId,
+        staffId: input.staffId,
+        serviceId: input.serviceId,
+        startAt: input.startAt,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BOOKINGS] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_CLIENTS] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_DASHBOARD_STATS] })
     },
   })
 }

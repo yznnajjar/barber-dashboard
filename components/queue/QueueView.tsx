@@ -1,10 +1,15 @@
 'use client'
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { useQueryClient } from '@tanstack/react-query'
 import { Box, Card, Typography, Skeleton } from '@mui/material'
 import { useQueue } from '@/hooks/queries/useQueue'
 import { useCallNext } from '@/hooks/mutations/useCallNext'
 import { useRemoveFromQueue } from '@/hooks/mutations/useRemoveFromQueue'
-import { MOCK_SALON_ID } from '@/constants'
+import { useAuthStore } from '@/store/authStore'
+import { queueSocket } from '@/lib/socket'
+import { queueEntryDtoToQueueEntry } from '@/lib/transform'
+import { QUERY_KEY_QUEUE } from '@/constants'
 import PageHeader from '@/components/shared/PageHeader'
 import ErrorState from '@/components/shared/ErrorState'
 import CallNextHero from './CallNextHero'
@@ -13,9 +18,39 @@ import { QueueGrid, WaitList } from './QueueView.styled'
 
 export default function QueueView() {
   const t = useTranslations('queue')
-  const { data: queue, isLoading, isError } = useQueue(MOCK_SALON_ID)
+  const queryClient = useQueryClient()
+  const salonId = useAuthStore((s) => s.salonId)
+  const { data: queue, isLoading, isError } = useQueue()
   const callNext = useCallNext()
   const removeFromQueue = useRemoveFromQueue()
+
+  useEffect(() => {
+    if (!salonId) return
+    queueSocket.connect()
+    queueSocket.emit('join-salon', salonId)
+
+    const handleUpdate = (data: unknown) => {
+      if (!Array.isArray(data)) return
+      const entries = data.map((d: Record<string, unknown>) =>
+        queueEntryDtoToQueueEntry({
+          id: String(d.id ?? ''),
+          position: Number(d.position ?? 0),
+          name: String(d.name ?? ''),
+          service: String(d.service ?? ''),
+          estimatedWaitMin: Number(d.estimatedWaitMin ?? 0),
+          joinedAt: String(d.joinedAt ?? new Date().toISOString()),
+          status: String(d.status ?? 'WAITING'),
+        }),
+      )
+      queryClient.setQueryData([QUERY_KEY_QUEUE], entries)
+    }
+
+    queueSocket.on('queue-updated', handleUpdate)
+    return () => {
+      queueSocket.off('queue-updated', handleUpdate)
+      queueSocket.disconnect()
+    }
+  }, [salonId, queryClient])
 
   if (isError) return <ErrorState />
 

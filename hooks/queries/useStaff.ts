@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { mockApi } from '@/lib/mockApi'
+import { staffApi } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import { QUERY_KEY_STAFF } from '@/constants'
 
-export const useStaff = (salonId: string) =>
-  useQuery({
+export const useStaff = () => {
+  const salonId = useAuthStore((s) => s.salonId)
+  return useQuery({
     queryKey: [QUERY_KEY_STAFF, salonId],
-    queryFn: () => mockApi.getStaff(),
+    queryFn: () => staffApi.getAll(),
     enabled: !!salonId,
   })
+}

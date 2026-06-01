@@ -2,8 +2,8 @@
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Skeleton } from '@mui/material'
+import { format } from 'date-fns'
 import { useBookings } from '@/hooks/queries/useBookings'
-import { MOCK_SALON_ID } from '@/constants'
 import { formatTime12 } from '@/lib/utils'
 import StatusChip from '@/components/shared/StatusChip'
 import UserAvatar from '@/components/shared/UserAvatar'
@@ -46,7 +46,7 @@ type Filter = 'ALL' | BookingStatus
 export default function MwebBookingsView() {
   const t = useTranslations('common')
   const [filter, setFilter] = useState<Filter>('ALL')
-  const { data: bookings, isLoading } = useBookings(MOCK_SALON_ID)
+  const { data: bookings, isLoading } = useBookings(format(new Date(), 'yyyy-MM-dd'))
 
   const filters: Filter[] = ['ALL', 'CONFIRMED', 'PENDING', 'COMPLETED', 'CANCELLED']
 

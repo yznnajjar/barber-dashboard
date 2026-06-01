@@ -8,6 +8,7 @@ import MwebAuthGate from './MwebAuthGate'
 import UserAvatar from '@/components/shared/UserAvatar'
 import MwebBottomNav from './MwebBottomNav'
 import ResponsiveGuard from './ResponsiveGuard'
+import RouteProgressBar from '@/components/shared/RouteProgressBar'
 import { PwaRoot, PwaTopbar, PwaScreen } from './MwebShell.styled'
 
 interface Props {
@@ -22,6 +23,7 @@ export default function MwebShell({ title, children, trailing }: Props) {
 
   return (
     <MwebAuthGate>
+      <RouteProgressBar />
       <ResponsiveGuard target="mweb" />
       <PwaRoot>
         <PwaTopbar>

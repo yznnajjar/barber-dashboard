@@ -12,7 +12,6 @@ import { addDays, format } from 'date-fns'
 import { useBookings } from '@/hooks/queries/useBookings'
 import { useStaff } from '@/hooks/queries/useStaff'
 import { useRescheduleBooking } from '@/hooks/mutations/useRescheduleBooking'
-import { MOCK_SALON_ID } from '@/constants'
 import { formatTime12, dayKey, timeToMinutes, minutesToTime } from '@/lib/utils'
 import {
   START_HOUR, END_HOUR, PX_PER_MIN, HOURS, snapDeltaToMinutes, clampStartMinutes,
@@ -36,8 +35,8 @@ export default function MwebCalendarView() {
   const [selected, setSelected] = useState<Booking | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
-  const { data: bookings, isLoading, isError } = useBookings(MOCK_SALON_ID)
-  const { data: staff } = useStaff(MOCK_SALON_ID)
+  const { data: bookings, isLoading, isError } = useBookings(format(anchor, 'yyyy-MM-dd'))
+  const { data: staff } = useStaff()
   const reschedule = useRescheduleBooking()
 
   // Touch + pointer, both gated so a tap still registers as a click.
@@ -78,18 +77,21 @@ export default function MwebCalendarView() {
     if (newStart === timeToMinutes(booking.startTime)) return
 
     reschedule.mutate(
-      { id: booking.id, startTime: minutesToTime(newStart), endTime: minutesToTime(newStart + duration) },
+      { id: booking.id, startAt: `${booking.date}T${minutesToTime(newStart)}:00.000Z` },
       { onSuccess: () => setToast(`${booking.customerName} → ${formatTime12(minutesToTime(newStart))}`) },
     )
   }
 
   const saveFromSheet = (next: { id: string; startTime: string; endTime: string; staffId: string }) => {
-    reschedule.mutate(next, {
-      onSuccess: () => {
-        setToast(`${selected?.customerName ?? ''} → ${formatTime12(next.startTime)}`)
-        setSelected(null)
+    reschedule.mutate(
+      { id: next.id, startAt: `${selected!.date}T${next.startTime}:00.000Z` },
+      {
+        onSuccess: () => {
+          setToast(`${selected?.customerName ?? ''} → ${formatTime12(next.startTime)}`)
+          setSelected(null)
+        },
       },
-    })
+    )
   }
 
   if (isError) return <ErrorState />

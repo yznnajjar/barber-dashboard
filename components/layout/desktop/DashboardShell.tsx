@@ -9,6 +9,7 @@ import Sidebar from './Sidebar'
 import Header from './Header'
 import AuthGate from '@/components/providers/AuthGate'
 import ResponsiveGuard from '@/components/layout/mweb/ResponsiveGuard'
+import RouteProgressBar from '@/components/shared/RouteProgressBar'
 import { AppGrid, Content, Page } from './DashboardShell.styled'
 
 const TITLE_KEYS: { match: string; key: string }[] = [
@@ -28,6 +29,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   return (
     <AuthGate>
+      <RouteProgressBar />
       <ResponsiveGuard target="desktop" />
       <AppGrid>
         <Sidebar />

@@ -1,13 +1,15 @@
 'use client'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Button } from '@mui/material'
+import { Button, CircularProgress } from '@mui/material'
 import MailOutline from '@mui/icons-material/MailOutline'
 import LockOutlined from '@mui/icons-material/LockOutlined'
 import ErrorOutlineRounded from '@mui/icons-material/ErrorOutlineRounded'
 import { useAuthStore } from '@/store/authStore'
+import { authApi } from '@/lib/api'
 import { useMwebRouter } from '@/hooks/shared/useMwebRouter'
-import { ROUTE_MWEB_DASHBOARD, ROUTE_MWEB_LOGIN, LOCALE_EN, LOCALE_AR } from '@/constants'
+import { ROUTE_MWEB_DASHBOARD, ROUTE_MWEB_LOGIN, LOCALE_EN, LOCALE_AR, DEFAULT_LOGIN_EMAIL, DEFAULT_LOGIN_PASSWORD } from '@/constants'
+import type { Role } from '@/types'
 import {
   LoginRoot, Brand, Hero, Field, InputWrap, ErrorMsg, LangToggle, Foot,
 } from './MwebLoginView.styled'
@@ -17,18 +19,36 @@ export default function MwebLoginView() {
   const setAuth = useAuthStore((s) => s.setAuth)
   const { locale, replace, switchLocale } = useMwebRouter()
 
-  const [email, setEmail] = useState('owner@najjarcuts.jo')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState(DEFAULT_LOGIN_EMAIL)
+  const [password, setPassword] = useState(DEFAULT_LOGIN_PASSWORD)
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const submit = () => {
+  const submit = async () => {
     if (!email.trim() || !password.trim()) {
       setError('Enter your email and password to continue.')
       return
     }
-    setAuth('demo-token', { id: 'usr_owner', name: 'Yousef Najjar', email, role: 'SALON_OWNER' })
-    replace(ROUTE_MWEB_DASHBOARD)
+    setLoading(true)
+    setError('')
+    try {
+      const result = await authApi.login(email, password)
+      setAuth(result.accessToken, result.refreshToken, {
+        id: result.userId,
+        name: email,
+        email,
+        role: result.role as Role,
+        salonId: result.salonId,
+      })
+      replace(ROUTE_MWEB_DASHBOARD)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        || 'Invalid credentials. Please try again.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -71,8 +91,8 @@ export default function MwebLoginView() {
 
       {error && <ErrorMsg><ErrorOutlineRounded sx={{ fontSize: 16 }} />{error}</ErrorMsg>}
 
-      <Button fullWidth variant="contained" onClick={submit} sx={{ height: 52, borderRadius: '12px', fontSize: 15, mt: 1 }}>
-        {t('signIn')}
+      <Button fullWidth variant="contained" onClick={submit} disabled={loading} sx={{ height: 52, borderRadius: '12px', fontSize: 15, mt: 1 }}>
+        {loading ? <CircularProgress size={22} color="inherit" /> : t('signIn')}
       </Button>
 
       <Foot>{t('demoHint')}</Foot>

@@ -1,5 +1,20 @@
 import { io } from 'socket.io-client'
 
-// Queue pages only (CLAUDE-code.md §7). Not auto-connected; mock layer simulates
-// queue-updated events in the dev build (see hooks/queries/useQueue.ts).
-export const socket = io(process.env.NEXT_PUBLIC_API_URL ?? '', { autoConnect: false })
+const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? ''
+// Backend WebSocket gateway is on the /queue namespace
+export const queueSocket = io(`${baseUrl}/queue`, {
+  autoConnect: false,
+  auth: (cb) => {
+    const token = (() => {
+      try {
+        const raw = localStorage.getItem('barber-auth')
+        if (!raw) return null
+        const parsed = JSON.parse(raw)
+        return parsed?.state?.token || null
+      } catch {
+        return null
+      }
+    })()
+    cb({ token })
+  },
+})
