@@ -1,3 +1,5 @@
+import type { BookingStatus } from '@/types'
+
 // ---- Dev / demo credentials ----
 export const DEFAULT_LOGIN_EMAIL = 'owner@salon.com'
 export const DEFAULT_LOGIN_PASSWORD = 'password123'
@@ -14,8 +16,28 @@ export const QUERY_KEY_DASHBOARD_STATS = 'dashboard_stats'
 // ---- Booking status ----
 export const BOOKING_STATUS_PENDING = 'PENDING'
 export const BOOKING_STATUS_CONFIRMED = 'CONFIRMED'
-export const BOOKING_STATUS_CANCELLED = 'CANCELLED'
+export const BOOKING_STATUS_ARRIVED = 'ARRIVED'
+export const BOOKING_STATUS_STARTED = 'STARTED'
 export const BOOKING_STATUS_COMPLETED = 'COMPLETED'
+export const BOOKING_STATUS_CANCELLED = 'CANCELLED'
+export const BOOKING_STATUS_NO_SHOW = 'NO_SHOW'
+
+/** The next status in the happy-path flow. */
+export const BOOKING_STATUS_NEXT: Partial<Record<BookingStatus, BookingStatus>> = {
+  PENDING: 'CONFIRMED',
+  CONFIRMED: 'ARRIVED',
+  ARRIVED: 'STARTED',
+  STARTED: 'COMPLETED',
+}
+
+export const BOOKING_STATUS_NEXT_LABEL_KEY: Record<string, string> = {
+  CONFIRMED: 'confirm',
+  ARRIVED: 'markArrived',
+  STARTED: 'markStarted',
+  COMPLETED: 'markCompleted',
+}
+
+export const BOOKING_STATUS_TERMINAL: BookingStatus[] = ['COMPLETED', 'CANCELLED', 'NO_SHOW']
 
 // ---- Locales ----
 export const LOCALE_EN = 'en'
@@ -73,6 +95,13 @@ export const MWEB_TO_DESKTOP: Record<string, string> = {
   [ROUTE_MWEB_BOOKINGS]: ROUTE_CALENDAR,
   [ROUTE_MWEB_PROFILE]: ROUTE_DASHBOARD,
 }
+
+// ---- Calendar views ----
+export const CALENDAR_VIEW_DAY   = 'day'   as const
+export const CALENDAR_VIEW_WEEK  = 'week'  as const
+export const CALENDAR_VIEW_MONTH = 'month' as const
+
+export type CalendarViewType = typeof CALENDAR_VIEW_DAY | typeof CALENDAR_VIEW_WEEK | typeof CALENDAR_VIEW_MONTH
 
 // ---- Misc ----
 export const DEFAULT_PAGE_SIZE = 20

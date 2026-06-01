@@ -14,7 +14,7 @@ export default function StatusChip({ status }: { status: BookingStatus }) {
         color: s.fg,
         fontWeight: 600,
         height: 22,
-        textDecoration: status === 'CANCELLED' ? 'line-through' : 'none',
+        textDecoration: status === 'CANCELLED' || status === 'NO_SHOW' ? 'line-through' : 'none',
       }}
     />
   )

@@ -5,21 +5,27 @@ import { QUERY_KEY_BOOKINGS, QUERY_KEY_CLIENTS, QUERY_KEY_DASHBOARD_STATS } from
 interface NewBooking {
   customerName: string
   phone?: string
+  clientId?: string
   staffId: string
   serviceId: string
-  startAt: string // ISO datetime
+  startAt: string
+  notes?: string
 }
 
 export const useCreateBooking = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: NewBooking) => {
-      const client = await clientsApi.create({
-        fullName: input.customerName.trim(),
-        phone: input.phone || '',
-      })
+      let clientId = input.clientId
+      if (!clientId) {
+        const client = await clientsApi.create({
+          fullName: input.customerName.trim(),
+          phone: input.phone || '',
+        })
+        clientId = client.id
+      }
       return bookingsApi.create({
-        clientId: client.id,
+        clientId,
         staffId: input.staffId,
         serviceId: input.serviceId,
         startAt: input.startAt,

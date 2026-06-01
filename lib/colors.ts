@@ -35,10 +35,13 @@ export const COLORS = {
   successBg: '#D2FAD5',
   warning: '#FC5201',
   warningBg: '#FFD279',
+  startedFg: '#C4860F',    // darker amber — STARTED chip/block foreground
+  arrivedFg: '#23529C',    // deep blue — ARRIVED chip/block foreground
   error: '#FA3951',
   errorBg: '#FFCFCB',
   info: '#403AFA',
   infoBg: '#BDDDF9',
+  princeTint: '#F3F0FF',   // lightest purple — today-cell background in month view
 
   // Brand logos (login social buttons)
   google: { blue: '#4285F4', green: '#34A853', yellow: '#FBBC05', red: '#EA4335' },
@@ -46,10 +49,13 @@ export const COLORS = {
 
 /** Booking-status → chip/blocks colours. Single source for StatusChip + Calendar. */
 export const STATUS_COLORS = {
-  PENDING: { bg: COLORS.warningBg, fg: COLORS.warning, label: 'Pending' },
-  CONFIRMED: { bg: COLORS.successBg, fg: COLORS.successDark, label: 'Confirmed' },
-  CANCELLED: { bg: COLORS.ink20, fg: COLORS.ink60, label: 'Cancelled' },
-  COMPLETED: { bg: COLORS.infoBg, fg: COLORS.princeDark, label: 'Completed' },
+  PENDING:    { bg: COLORS.warningBg, fg: COLORS.warning,     label: 'Pending' },
+  CONFIRMED:  { bg: COLORS.successBg, fg: COLORS.successDark, label: 'Confirmed' },
+  ARRIVED:    { bg: COLORS.infoBg,    fg: COLORS.arrivedFg,   label: 'Arrived' },
+  STARTED:    { bg: COLORS.warningBg, fg: COLORS.startedFg,   label: 'Started' },
+  COMPLETED:  { bg: COLORS.infoBg,    fg: COLORS.princeDark,  label: 'Completed' },
+  CANCELLED:  { bg: COLORS.ink20,     fg: COLORS.ink60,       label: 'Cancelled' },
+  NO_SHOW:    { bg: COLORS.errorBg,   fg: COLORS.error,       label: 'No-show' },
 } as const
 
 /** Avatar gradients (.av-1 .. .av-8 in Barber.html). */
@@ -63,6 +69,18 @@ export const AVATAR_GRADIENTS: Record<number, string> = {
   7: `linear-gradient(135deg, ${COLORS.limelight}, ${COLORS.success})`,
   8: `linear-gradient(135deg, ${COLORS.ink80}, ${COLORS.ink})`,
 }
+
+/** Colour-by-service / colour-by-staff palette — deterministic hash pick. */
+export const CALENDAR_PALETTE = [
+  { bg: '#E6F2EF', fg: '#0A5A4D' },
+  { bg: '#F8EFDC', fg: '#8A6618' },
+  { bg: '#E8F0FB', fg: '#23529C' },
+  { bg: '#FBEAF0', fg: '#993556' },
+  { bg: '#ECE7FB', fg: '#4B3B9C' },
+  { bg: '#E9F4E6', fg: '#3B6D11' },
+  { bg: '#FDF0DA', fg: '#B85C1A' },
+  { bg: '#E2F0FA', fg: '#1A6B8A' },
+] as const
 
 /** Heatmap intensity ramp (analytics busy-hours). */
 export const HEATMAP_RAMP = [

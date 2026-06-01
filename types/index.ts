@@ -1,4 +1,4 @@
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'ARRIVED' | 'STARTED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
 
 export type Role = 'SALON_OWNER' | 'STAFF' | 'ADMIN'
 
@@ -104,6 +104,16 @@ export interface ClientVisit {
   serviceName: string
   staffName: string
   amount: number
+}
+
+export interface BlockedTime {
+  id: string
+  staffId: string
+  type: string
+  date: string
+  startTime: string
+  endTime: string
+  notes?: string
 }
 
 export type AnalyticsPeriod = 'today' | 'week' | 'month'

@@ -53,10 +53,24 @@ export const dashboardApi = {
 }
 
 // ---- Bookings ----
+export interface BookingFilters {
+  staffIds?: string[]
+  statuses?: string[]
+  serviceIds?: string[]
+}
+
 export const bookingsApi = {
-  getCalendar: async (date: string, view: 'day' | 'week' = 'day'): Promise<Booking[]> => {
+  getCalendar: async (
+    date: string,
+    view: 'day' | 'week' | 'month' = 'day',
+    filters?: BookingFilters,
+  ): Promise<Booking[]> => {
+    const params: Record<string, unknown> = { date, view }
+    if (filters?.staffIds?.length) params.staffIds = filters.staffIds
+    if (filters?.statuses?.length) params.statuses = filters.statuses
+    if (filters?.serviceIds?.length) params.serviceIds = filters.serviceIds
     const dtos = await api
-      .get<{ success: boolean; data: BookingDto[] }>('/bookings', { params: { date, view } })
+      .get<{ success: boolean; data: BookingDto[] }>('/bookings', { params })
       .then(unwrap)
     return dtos.map(bookingDtoToBooking)
   },
@@ -91,9 +105,15 @@ export const bookingsApi = {
       .then(unwrap)
       .then(bookingDtoToBooking),
 
-  cancel: (id: string): Promise<Booking> =>
+  cancel: (id: string, reason?: string): Promise<Booking> =>
     api
-      .patch<{ success: boolean; data: BookingDto }>(`/bookings/${id}/cancel`)
+      .patch<{ success: boolean; data: BookingDto }>(`/bookings/${id}/cancel`, { reason })
+      .then(unwrap)
+      .then(bookingDtoToBooking),
+
+  updateStatus: (id: string, status: string): Promise<Booking> =>
+    api
+      .patch<{ success: boolean; data: BookingDto }>(`/bookings/${id}/status`, { status })
       .then(unwrap)
       .then(bookingDtoToBooking),
 }

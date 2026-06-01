@@ -1,12 +1,5 @@
-import { STATUS_COLORS } from '@/lib/colors'
+import { STATUS_COLORS, CALENDAR_PALETTE } from '@/lib/colors'
 import type { BookingStatus } from '@/types'
-
-export const CALENDAR_VIEWS = {
-  DAY: 'day',
-  WEEK: 'week',
-} as const
-
-export type CalendarView = typeof CALENDAR_VIEWS[keyof typeof CALENDAR_VIEWS]
 
 export const START_HOUR = 9
 export const END_HOUR = 20
@@ -32,3 +25,20 @@ export const blockColors = (status: BookingStatus) => ({
   bg: STATUS_COLORS[status].bg,
   fg: STATUS_COLORS[status].fg,
 })
+
+const hashColor = (key: string) => {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0
+  return CALENDAR_PALETTE[Math.abs(h) % CALENDAR_PALETTE.length]
+}
+
+export type ColorMode = 'status' | 'service' | 'staff'
+
+export const colorForBooking = (
+  booking: { status: BookingStatus; serviceName: string; staffId: string },
+  mode: ColorMode,
+) => {
+  if (mode === 'service') return hashColor(booking.serviceName)
+  if (mode === 'staff') return hashColor(booking.staffId)
+  return blockColors(booking.status)
+}
