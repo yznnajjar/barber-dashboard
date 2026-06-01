@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns'
+import type { Booking } from '@/types'
 
 /* ────────────────────────── Money ────────────────────────── */
 
@@ -69,6 +70,23 @@ export const applyReschedule = (
     startTime: newStart,
     endTime: minutesToTime(timeToMinutes(newStart) + duration),
   }
+}
+
+/** Builds a UTC ISO startAt string from a booking date and a TimePicker Date. */
+export const buildStartAt = (date: string, time: Date): string => {
+  const startMin = time.getHours() * 60 + time.getMinutes()
+  return `${date}T${minutesToTime(startMin)}:00.000Z`
+}
+
+/** Returns the display rows for the appointment detail drawer. */
+export const getBookingDetailRows = (booking: Booking): [string, string][] => {
+  const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
+  return [
+    ['Service', booking.serviceName],
+    ['Time', `${formatTime12(booking.startTime)} – ${formatTime12(booking.endTime)}`],
+    ['Duration', formatDuration(duration)],
+    ['Deposit', booking.depositPaid ? 'Paid' : 'Not paid'],
+  ]
 }
 
 /* ────────────────────────── Avatars / identity ────────────────────────── */

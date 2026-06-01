@@ -3,6 +3,7 @@ import { useDraggable } from '@dnd-kit/core'
 import { formatTime12, timeToMinutes } from '@/lib/utils'
 import { START_HOUR, PX_PER_MIN, blockColors } from './calendarConfig'
 import { Appt } from './CalendarView.styled'
+import { BOOKING_STATUS_CANCELLED } from '@/constants'
 import type { Booking } from '@/types'
 
 interface Props {
@@ -18,7 +19,7 @@ export default function AppointmentBlock({ booking, compact, columnId, onClick }
   const c = blockColors(booking.status)
 
   // Cancelled bookings are not draggable.
-  const draggable = booking.status !== 'CANCELLED'
+  const draggable = booking.status !== BOOKING_STATUS_CANCELLED
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: booking.id,
     data: { booking, columnId },
@@ -32,7 +33,7 @@ export default function AppointmentBlock({ booking, compact, columnId, onClick }
       $color={c.fg}
       $top={top}
       $height={height}
-      $strike={booking.status === 'CANCELLED'}
+      $strike={booking.status === BOOKING_STATUS_CANCELLED}
       $dragging={isDragging}
       $draggable={draggable}
       // A click and a drag both start with pointerdown; dnd-kit only activates

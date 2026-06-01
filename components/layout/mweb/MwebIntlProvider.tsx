@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import { MWEB_LANG_PARAM } from '@/constants'
 import { normalizeLocale, dirForLocale } from '@/lib/mwebNav'
 import Providers from '@/components/providers/Providers'
-import enMessages from '@/messages/en.json'
-import arMessages from '@/messages/ar.json'
+import enMessages from '@/translations/en.json'
+import arMessages from '@/translations/ar.json'
 
 const MESSAGES: Record<string, AbstractIntlMessages> = {
   en: enMessages as AbstractIntlMessages,
