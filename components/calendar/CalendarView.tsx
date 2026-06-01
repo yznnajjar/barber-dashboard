@@ -1,25 +1,13 @@
 'use client'
-import { useMemo, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import {
-  Box, Button, ToggleButtonGroup, ToggleButton, IconButton, Skeleton, Snackbar, Alert,
-} from '@mui/material'
-import {
-  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
-  type DragStartEvent, type DragEndEvent,
-} from '@dnd-kit/core'
+import { Box, Button, ToggleButtonGroup, ToggleButton, IconButton, Skeleton, Snackbar, Alert } from '@mui/material'
+import { DndContext, DragOverlay } from '@dnd-kit/core'
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import AddRounded from '@mui/icons-material/AddRounded'
-import { addDays, startOfWeek, format } from 'date-fns'
-import { useBookings } from '@/hooks/queries/useBookings'
-import { useStaff } from '@/hooks/queries/useStaff'
-import { useRescheduleBooking } from '@/hooks/mutations/useRescheduleBooking'
-import { formatTime12, formatDuration, dayKey, timeToMinutes, minutesToTime } from '@/lib/utils'
-import { blockColors } from './calendarConfig'
-import {
-  START_HOUR, END_HOUR, PX_PER_MIN, HOURS, snapDeltaToMinutes, clampStartMinutes,
-} from './calendarConfig'
+import { format } from 'date-fns'
+import { formatTime12, dayKey, timeToMinutes } from '@/lib/utils'
+import { blockColors, PX_PER_MIN, CALENDAR_VIEWS } from './calendarConfig'
+import { useCalendarView } from './useCalendarView'
 import PageHeader from '@/components/shared/PageHeader'
 import UserAvatar from '@/components/shared/UserAvatar'
 import ErrorState from '@/components/shared/ErrorState'
@@ -30,76 +18,17 @@ import DroppableColumn from './DroppableColumn'
 import {
   CalWrap, HeaderRow, Body, TimeCol, TimeSlot, RowBg, CurrentLine, Toolbar, ToolbarLabel, ApptGhost,
 } from './CalendarView.styled'
-import type { Booking } from '@/types'
 
 export default function CalendarView() {
-  const t = useTranslations('calendar')
-  const [view, setView] = useState<'day' | 'week'>('day')
-  const [anchor, setAnchor] = useState<Date>(new Date())
-  const [selected, setSelected] = useState<Booking | null>(null)
-  const [formOpen, setFormOpen] = useState(false)
-  const [dragging, setDragging] = useState<Booking | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
-
-  const dateKey = format(anchor, 'yyyy-MM-dd')
-  const { data: bookings, isLoading, isError } = useBookings(dateKey, view)
-  const { data: staff } = useStaff()
-  const reschedule = useRescheduleBooking()
-
-  // Require a few px of movement before a drag starts, so a click still opens the drawer.
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
-
-  const weekDays = useMemo(() => {
-    const start = startOfWeek(anchor, { weekStartsOn: 0 })
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i))
-  }, [anchor])
-
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
-  const nowTop = (nowMin - START_HOUR * 60) * PX_PER_MIN
-  const nowInRange = nowMin >= START_HOUR * 60 && nowMin <= END_HOUR * 60
-
-  const step = (dir: number) => setAnchor((d) => addDays(d, dir * (view === 'week' ? 7 : 1)))
-  const dayBookings = (key: string, staffId?: string) =>
-    (bookings ?? []).filter((b) => b.date === key && (staffId ? b.staffId === staffId : true))
-
-  const onDragStart = (e: DragStartEvent) => {
-    setDragging((e.active.data.current?.booking as Booking) ?? null)
-  }
-
-  const onDragEnd = (e: DragEndEvent) => {
-    const booking = e.active.data.current?.booking as Booking | undefined
-    setDragging(null)
-    if (!booking) return
-
-    // Vertical movement → snapped minute delta → new clamped start time.
-    const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
-    const deltaMin = snapDeltaToMinutes(e.delta.y)
-    const newStart = clampStartMinutes(timeToMinutes(booking.startTime) + deltaMin, duration)
-
-    // Dropping onto a different column (staff in day view, day in week view) moves it there.
-    const targetColumn = (e.over?.data.current?.columnId as string | undefined) ?? null
-    const sourceColumn = (e.active.data.current?.columnId as string | undefined) ?? null
-    const movedColumn = targetColumn && targetColumn !== sourceColumn
-
-    if (deltaMin === 0 && !movedColumn) return // no real change
-
-    const newStartAt = `${booking.date}T${minutesToTime(newStart)}:00.000Z`
-    reschedule.mutate(
-      { id: booking.id, startAt: newStartAt },
-      {
-        onSuccess: () =>
-          setToast(`${booking.customerName} → ${formatTime12(minutesToTime(newStart))}`),
-      },
-    )
-  }
+  const {
+    t, view, setView, anchor, setAnchor, selected, setSelected,
+    formOpen, setFormOpen, dragging, toast, setToast,
+    isLoading, isError, staff, sensors, weekDays,
+    now, nowTop, nowInRange, cols, label, HOURS,
+    step, dayBookings, onDragStart, onDragEnd,
+  } = useCalendarView()
 
   if (isError) return <ErrorState />
-
-  const cols = view === 'day' ? staff?.length ?? 4 : 7
-  const label = view === 'day'
-    ? anchor.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-    : `${format(weekDays[0], 'd MMM')} – ${format(weekDays[6], 'd MMM')}`
 
   return (
     <Box>
@@ -113,8 +42,8 @@ export default function CalendarView() {
           exclusive size="small" value={view} onChange={(_, v) => v && setView(v)}
           sx={{ bgcolor: 'background.default', borderRadius: 2, p: '3px', '& .MuiToggleButton-root': { border: 'none', borderRadius: '6px !important', textTransform: 'none', fontWeight: 600, px: 1.75, py: 0.5 }, '& .Mui-selected': { bgcolor: '#fff !important', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' } }}
         >
-          <ToggleButton value="day">{t('day')}</ToggleButton>
-          <ToggleButton value="week">{t('week')}</ToggleButton>
+          <ToggleButton value={CALENDAR_VIEWS.DAY}>{t('day')}</ToggleButton>
+          <ToggleButton value={CALENDAR_VIEWS.WEEK}>{t('week')}</ToggleButton>
         </ToggleButtonGroup>
         <Box sx={{ flex: 1 }} />
         <IconButton size="small" onClick={() => step(-1)}><ChevronLeftRounded /></IconButton>
@@ -130,7 +59,7 @@ export default function CalendarView() {
           <CalWrap>
             <HeaderRow $cols={cols}>
               <div />
-              {view === 'day'
+              {view === CALENDAR_VIEWS.DAY
                 ? staff?.map((m) => (
                     <div key={m.id}>
                       <UserAvatar name={m.name} color={m.avatarColor} size="sm" />
@@ -149,7 +78,7 @@ export default function CalendarView() {
                 {HOURS.map((h) => <TimeSlot key={h}>{formatTime12(`${h}:00`)}</TimeSlot>)}
               </TimeCol>
 
-              {view === 'day'
+              {view === CALENDAR_VIEWS.DAY
                 ? staff?.map((m) => (
                     <DroppableColumn key={m.id} columnId={m.id}>
                       {HOURS.map((h) => <RowBg key={h} />)}
