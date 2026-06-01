@@ -53,6 +53,10 @@ export const MOBILE_BREAKPOINT_PX = 768
 // Cookie the client sets so middleware can route the FIRST request correctly
 // (middleware runs on the server and can't read window.innerWidth).
 export const DEVICE_COOKIE = 'barber-device'
+export const DEVICE_MOBILE = 'mobile'
+export const DEVICE_DESKTOP = 'desktop'
+export const SHELL_DESKTOP = 'desktop' as const
+export const SHELL_MWEB = 'mweb' as const
 
 // Desktop bare-route  →  equivalent mweb bare-route. Drives the device redirect.
 export const DESKTOP_TO_MWEB: Record<string, string> = {

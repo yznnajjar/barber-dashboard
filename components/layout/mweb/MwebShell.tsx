@@ -2,7 +2,7 @@
 import { ReactNode } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useMwebRouter } from '@/hooks/shared/useMwebRouter'
-import { ROUTE_MWEB_PROFILE } from '@/constants'
+import { ROUTE_MWEB_PROFILE, SHELL_MWEB } from '@/constants'
 import NotificationsRounded from '@mui/icons-material/NotificationsRounded'
 import MwebAuthGate from './MwebAuthGate'
 import UserAvatar from '@/components/shared/UserAvatar'
@@ -24,7 +24,7 @@ export default function MwebShell({ title, children, trailing }: Props) {
   return (
     <MwebAuthGate>
       <RouteProgressBar />
-      <ResponsiveGuard target="mweb" />
+      <ResponsiveGuard target={SHELL_MWEB} />
       <PwaRoot>
         <PwaTopbar>
           <span className="title">{title}</span>

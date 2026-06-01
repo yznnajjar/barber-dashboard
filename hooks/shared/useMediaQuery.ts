@@ -21,3 +21,20 @@ export function useMediaQuery(query: string): boolean {
 /** Single breakpoint source for the desktop ⇄ mweb split. */
 export const MOBILE_MAX_WIDTH = 768
 export const useIsMobile = () => useMediaQuery(`(max-width: ${MOBILE_MAX_WIDTH}px)`)
+
+/**
+ * Same as useIsMobile but also exposes `resolved` — false on the server and
+ * first paint, true after the media-query effect has run. Use this to block
+ * rendering until the device type is known (avoids firing API calls that
+ * immediately get cancelled by a redirect).
+ */
+export function useIsMobileResolved(): { isMobile: boolean; resolved: boolean } {
+  const [resolved, setResolved] = useState(false)
+  const isMobile = useIsMobile()
+
+  useEffect(() => {
+    setResolved(true)
+  }, [])
+
+  return { isMobile, resolved }
+}
