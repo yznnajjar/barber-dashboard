@@ -51,6 +51,26 @@ export const timeStringToDate = (hhmm: string): Date => {
 export const dateToTimeString = (d: Date | null, fallback = '09:00'): string =>
   d ? `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}` : fallback
 
+/** ISO datetime → UTC 'HH:mm'. */
+export const isoToUtcTime = (iso: string): string => {
+  const d = new Date(iso)
+  return minutesToTime(d.getUTCHours() * 60 + d.getUTCMinutes())
+}
+
+/** Returns updated startTime / endTime / date for an optimistic reschedule. */
+export const applyReschedule = (
+  booking: { startTime: string; endTime: string },
+  startAt: string,
+) => {
+  const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
+  const newStart = isoToUtcTime(startAt)
+  return {
+    date: startAt.split('T')[0],
+    startTime: newStart,
+    endTime: minutesToTime(timeToMinutes(newStart) + duration),
+  }
+}
+
 /* ────────────────────────── Avatars / identity ────────────────────────── */
 
 export const initials = (name: string): string =>

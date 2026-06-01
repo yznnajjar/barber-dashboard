@@ -14,20 +14,12 @@ export const useCreateBooking = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: NewBooking) => {
-      let clientId = ''
-      if (input.customerName.trim()) {
-        try {
-          const client = await clientsApi.create({
-            fullName: input.customerName.trim(),
-            phone: input.phone || '',
-          })
-          clientId = client.id
-        } catch {
-          // proceed without clientId if creation fails
-        }
-      }
+      const client = await clientsApi.create({
+        fullName: input.customerName.trim(),
+        phone: input.phone || '',
+      })
       return bookingsApi.create({
-        clientId,
+        clientId: client.id,
         staffId: input.staffId,
         serviceId: input.serviceId,
         startAt: input.startAt,
