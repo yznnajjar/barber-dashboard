@@ -23,6 +23,7 @@ import {
   dashboardOverviewToStats, dashboardOverviewToActivity,
   analyticsReportToAnalytics,
 } from './transform'
+import { AUTH_REFRESH_ENDPOINT } from '@/constants'
 
 function unwrap<T>(res: { data: { success: boolean; data: T } }): T {
   return res.data.data
@@ -34,7 +35,7 @@ export const authApi = {
     api.post<{ success: boolean; data: AuthResult }>('/auth/login', { email, password }).then(unwrap),
 
   refresh: (refreshToken: string) =>
-    api.post<{ success: boolean; data: AuthTokens }>('/auth/refresh', { refreshToken }).then(unwrap),
+    api.post<{ success: boolean; data: AuthTokens }>(AUTH_REFRESH_ENDPOINT, { refreshToken }).then(unwrap),
 
   logout: () => api.post('/auth/logout'),
 }

@@ -14,7 +14,7 @@ import { useStaff } from '@/hooks/queries/useStaff'
 import { useRescheduleBooking } from '@/hooks/mutations/useRescheduleBooking'
 import { formatTime12, dayKey, timeToMinutes, minutesToTime } from '@/lib/utils'
 import {
-  START_HOUR, END_HOUR, PX_PER_MIN, HOURS, snapDeltaToMinutes, clampStartMinutes,
+  START_HOUR, END_HOUR, PX_PER_MIN, HOURS, STRIP_DAYS, snapDeltaToMinutes, clampStartMinutes, nowPosition,
 } from '@/components/calendar/calendarConfig'
 import UserAvatar from '@/components/shared/UserAvatar'
 import ErrorState from '@/components/shared/ErrorState'
@@ -26,7 +26,6 @@ import {
 } from './MwebCalendarView.styled'
 import type { Booking } from '@/types'
 
-const STRIP_DAYS = 14
 
 export default function MwebCalendarView() {
   const t = useTranslations('calendar')
@@ -35,7 +34,7 @@ export default function MwebCalendarView() {
   const [selected, setSelected] = useState<Booking | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
-  const { data: bookings, isLoading, isError } = useBookings(format(anchor, 'yyyy-MM-dd'))
+  const { data: bookings, isLoading, isError } = useBookings(dayKey(anchor))
   const { data: staff } = useStaff()
   const reschedule = useRescheduleBooking()
 
@@ -54,9 +53,7 @@ export default function MwebCalendarView() {
   }, [])
 
   const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
-  const nowTop = (nowMin - START_HOUR * 60) * PX_PER_MIN
-  const nowInRange = nowMin >= START_HOUR * 60 && nowMin <= END_HOUR * 60
+  const { nowMin, nowTop, nowInRange } = nowPosition(now)
   const isToday = dayKey(anchor) === dayKey(now)
 
   const dayBookings = useMemo(

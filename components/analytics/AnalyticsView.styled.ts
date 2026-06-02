@@ -26,7 +26,7 @@ export const BarFill = styled.div`
 /* Busy-hours heatmap (40px label column + 12 slot columns) */
 export const HeatGrid = styled.div`
   display: grid;
-  grid-template-columns: 40px repeat(12, 1fr);
+  grid-template-columns: 70px repeat(12, 1fr);
   gap: 4px;
 `
 
@@ -40,12 +40,14 @@ export const HeatLabel = styled.div`
   color: ${COLORS.ink60};
   display: flex;
   align-items: center;
+  padding-inline-end: 6px;
 `
 
 export const HeatSlotLabel = styled.div`
   font-size: 10px;
   color: ${COLORS.ink40};
   text-align: center;
+  padding-bottom: 4px;
 `
 
 export const HeatCell = styled.div`

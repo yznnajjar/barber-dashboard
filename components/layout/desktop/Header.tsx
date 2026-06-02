@@ -2,14 +2,14 @@
 import { useEffect, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { usePathname, useRouter } from '@/i18n/routing'
-import { IconButton, Box, Badge } from '@mui/material'
+import { Box, Badge } from '@mui/material'
 import SearchRounded from '@mui/icons-material/SearchRounded'
 import NotificationsNoneRounded from '@mui/icons-material/NotificationsNoneRounded'
 import LanguageRounded from '@mui/icons-material/LanguageRounded'
 import LogoutRounded from '@mui/icons-material/LogoutRounded'
 import { useAuthStore } from '@/store/authStore'
 import { LOCALE_AR, LOCALE_EN, ROUTE_LOGIN } from '@/constants'
-import { HeaderRoot, Crumbs, SearchBox } from './Header.styled'
+import { HeaderRoot, Crumbs, SearchBox, HeaderIconButton } from './Header.styled'
 import CommandModal from './CommandModal'
 
 export default function Header({ title }: { title: string }) {
@@ -57,13 +57,13 @@ export default function Header({ title }: { title: string }) {
           <span style={{ flex: 1 }}>{common('search')}…</span>
           <kbd style={{ fontSize: 11, fontWeight: 700, opacity: 0.6 }}>⌘K</kbd>
         </SearchBox>
-        <IconButton onClick={toggleLocale} title={locale === LOCALE_AR ? 'English' : 'العربية'}>
+        <HeaderIconButton onClick={toggleLocale} title={locale === LOCALE_AR ? 'English' : 'العربية'}>
           <LanguageRounded />
-        </IconButton>
-        <IconButton title="Notifications">
+        </HeaderIconButton>
+        <HeaderIconButton title="Notifications">
           <Badge color="error" variant="dot"><NotificationsNoneRounded /></Badge>
-        </IconButton>
-        <IconButton onClick={handleLogout} title={nav('logout')}><LogoutRounded /></IconButton>
+        </HeaderIconButton>
+        <HeaderIconButton onClick={handleLogout} title={nav('logout')}><LogoutRounded /></HeaderIconButton>
       </HeaderRoot>
 
       <CommandModal open={searchOpen} onClose={() => setSearchOpen(false)} />

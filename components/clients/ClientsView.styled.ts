@@ -56,7 +56,7 @@ export const SavedFlag = styled.div`
 `
 
 export const DrawerHead = styled.div`
-  padding: 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid ${COLORS.ink20};
   display: flex;
   align-items: center;
@@ -66,6 +66,16 @@ export const DrawerHead = styled.div`
 export const DATAGRID_SX = {
   border: 'none',
   '& .MuiDataGrid-row': { cursor: 'pointer' },
+  '& .MuiDataGrid-row:hover': { backgroundColor: COLORS.pebble },
   '& .MuiDataGrid-columnHeaders': { bgcolor: COLORS.pebble },
+  // Match Barber.html .tbl thead th — 11px/700 uppercase, ink-60.
+  '& .MuiDataGrid-columnHeaderTitle': {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    color: COLORS.ink60,
+  },
+  '& .MuiDataGrid-cell': { fontSize: 13.5 },
   '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': { outline: 'none' },
 } as const

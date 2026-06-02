@@ -1,27 +1,52 @@
 import styled from 'styled-components'
 import { COLORS } from '@/lib/colors'
+import { ROW_PX } from './calendarConfig'
+
+/* Fresha design tokens — scoped to the calendar (see fresha-calendar-live.html). */
+export const FZ = {
+  violet: '#6b4eff',
+  violetDark: '#5436e0',
+  violetSoft: '#efebff',
+  ink: '#1a1a2e',
+  ink2: '#5a5b6e',
+  ink3: '#9092a3',
+  line: '#ededf2',
+  line2: '#e2e2ea',
+  surf: '#ffffff',
+  surf2: '#fafafc',
+  bg: '#f6f6f9',
+  dang: '#e0483a',
+  font: "'Plus Jakarta Sans', sans-serif",
+  shadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.07)',
+  pop: '0 10px 34px rgba(20,20,40,.16), 0 2px 8px rgba(20,20,40,.08)',
+} as const
 
 export const CalWrap = styled.div`
-  background: ${COLORS.white};
-  border: 1px solid ${COLORS.ink20};
-  border-radius: 12px;
+  font-family: ${FZ.font};
+  background: ${FZ.surf};
+  border: 1px solid ${FZ.line2};
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: ${FZ.shadow};
 `
 
 export const HeaderRow = styled.div<{ $cols: number }>`
   display: grid;
-  grid-template-columns: 64px repeat(${({ $cols }) => $cols}, 1fr);
-  border-bottom: 1px solid ${COLORS.ink20};
-  background: ${COLORS.pebble};
+  grid-template-columns: 64px repeat(${({ $cols }) => $cols}, minmax(150px, 1fr));
+  border-bottom: 1px solid ${FZ.line2};
+  background: ${FZ.surf};
 
   > div {
-    padding: 12px 10px;
-    border-inline-start: 1px solid ${COLORS.ink20};
+    padding: 11px 8px;
+    border-inline-start: 1px solid ${FZ.line};
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: ${FZ.ink};
   }
   > div:first-child {
     border-inline-start: none;
@@ -30,8 +55,9 @@ export const HeaderRow = styled.div<{ $cols: number }>`
 
 export const Body = styled.div<{ $cols: number }>`
   display: grid;
-  grid-template-columns: 64px repeat(${({ $cols }) => $cols}, 1fr);
+  grid-template-columns: 64px repeat(${({ $cols }) => $cols}, minmax(150px, 1fr));
   position: relative;
+  background: ${FZ.surf};
 `
 
 export const TimeCol = styled.div`
@@ -40,28 +66,34 @@ export const TimeCol = styled.div`
 `
 
 export const TimeSlot = styled.div`
-  height: 60px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: ${COLORS.ink40};
-  border-top: 1px solid ${COLORS.ink20};
-  text-align: end;
-  &:first-child {
-    border-top: none;
+  height: ${ROW_PX}px;
+  position: relative;
+  border-bottom: 1px solid ${FZ.line};
+
+  span {
+    position: absolute;
+    top: -7px;
+    inset-inline-end: 9px;
+    background: ${FZ.surf};
+    padding: 0 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: ${FZ.ink3};
   }
 `
 
 export const StaffCol = styled.div`
-  border-inline-start: 1px solid ${COLORS.ink20};
+  border-inline-start: 1px solid ${FZ.line};
   position: relative;
 `
 
 export const RowBg = styled.div`
-  height: 60px;
-  border-top: 1px dashed ${COLORS.hairline};
-  &:first-child {
-    border-top: none;
+  height: ${ROW_PX}px;
+  border-bottom: 1px solid ${FZ.line};
+  cursor: pointer;
+  transition: background 0.12s;
+  &:hover {
+    background: #faf7ff;
   }
 `
 
@@ -70,18 +102,20 @@ export const Appt = styled.div<{
   $strike?: boolean; $dragging?: boolean; $draggable?: boolean
 }>`
   position: absolute;
-  inset-inline: 6px;
+  inset-inline: 4px;
   top: ${({ $top }) => $top}px;
   height: ${({ $height }) => $height}px;
   background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};
   border-inline-start: 3px solid ${({ $color }) => $color};
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: 9px;
+  padding: 7px 9px;
+  font-family: ${FZ.font};
   font-size: 12px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(20, 20, 40, 0.06);
   cursor: ${({ $draggable }) => ($draggable ? 'grab' : 'pointer')};
-  transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+  transition: transform 0.08s, box-shadow 0.12s, opacity 0.12s;
   text-decoration: ${({ $strike }) => ($strike ? 'line-through' : 'none')};
   /* Hide the original while its overlay is being dragged */
   opacity: ${({ $dragging }) => ($dragging ? 0.35 : 1)};
@@ -89,18 +123,52 @@ export const Appt = styled.div<{
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(6, 9, 17, 0.1);
+    box-shadow: ${FZ.shadow};
+    z-index: 6;
   }
   &:active {
     cursor: ${({ $draggable }) => ($draggable ? 'grabbing' : 'pointer')};
   }
 
+  .appt-dot {
+    position: absolute;
+    top: 8px;
+    inset-inline-end: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+  }
+  .appt-tm {
+    font-size: 10.5px;
+    font-weight: 600;
+    opacity: 0.85;
+    padding-inline-end: 14px;
+  }
   .appt-name {
+    font-size: 12.5px;
     font-weight: 700;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .appt-svc {
+    font-size: 11px;
     opacity: 0.85;
-    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .appt-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 3px;
+  }
+  .appt-price {
+    font-size: 11px;
+    font-weight: 700;
   }
 `
 
@@ -111,15 +179,17 @@ export const ApptGhost = styled.div<{ $bg: string; $color: string; $height: numb
   background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};
   border-inline-start: 3px solid ${({ $color }) => $color};
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: 9px;
+  padding: 7px 9px;
+  font-family: ${FZ.font};
   font-size: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 28px rgba(6, 9, 17, 0.22);
+  box-shadow: ${FZ.pop};
   cursor: grabbing;
 
-  .appt-name { font-weight: 700; }
-  .appt-svc { opacity: 0.85; margin-top: 2px; }
+  .appt-tm { font-size: 10.5px; font-weight: 600; opacity: 0.85; }
+  .appt-name { font-size: 12.5px; font-weight: 700; margin-top: 1px; }
+  .appt-svc { font-size: 11px; opacity: 0.85; }
 `
 
 export const CurrentLine = styled.div<{ $top: number }>`
@@ -127,28 +197,152 @@ export const CurrentLine = styled.div<{ $top: number }>`
   inset-inline: 0;
   top: ${({ $top }) => $top}px;
   height: 2px;
-  background: ${COLORS.prince};
-  z-index: 5;
+  background: ${FZ.dang};
+  z-index: 7;
   pointer-events: none;
 
   &::before {
     content: '';
     position: absolute;
     inset-inline-start: -5px;
-    top: -4px;
-    width: 10px;
-    height: 10px;
+    top: -3px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: ${COLORS.prince};
+    background: ${FZ.dang};
   }
 `
 
 export const DrawerHead = styled.div`
-  padding: 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid ${COLORS.ink20};
   display: flex;
   align-items: center;
+  gap: 12px;
 `
+
+/* ── Appointment detail popover (design A4) ──────────────── */
+export const ApopStrip = styled.div<{ $bg: string }>`
+  height: 7px;
+  background: ${({ $bg }) => $bg};
+`
+
+export const ApopBody = styled.div`
+  padding: 17px 19px;
+  font-family: ${FZ.font};
+`
+
+export const ApopHead = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+`
+
+export const ApopSvc = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  color: ${FZ.ink};
+  line-height: 1.3;
+`
+
+export const ApopPrice = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  color: ${FZ.ink};
+  white-space: nowrap;
+`
+
+export const ApopMeta = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+  font-size: 13px;
+  color: ${FZ.ink2};
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .row svg {
+    width: 17px;
+    height: 17px;
+    color: ${FZ.ink3};
+    flex: none;
+  }
+`
+
+export const ApopActs = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border-top: 1px solid ${FZ.line};
+  padding-top: 14px;
+`
+
+export const ApopMore = styled.div`
+  border-top: 1px solid ${FZ.line};
+  padding: 6px;
+`
+
+export const ApopMenuItem = styled.button<{ $danger?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 0;
+  background: 0;
+  border-radius: 9px;
+  font-family: ${FZ.font};
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: start;
+  color: ${({ $danger }) => ($danger ? FZ.dang : FZ.ink2)};
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: ${({ $danger }) => ($danger ? FZ.dang : FZ.ink3)};
+  }
+  &:hover {
+    background: ${FZ.surf2};
+  }
+`
+
+export const StatusPillBtn = styled.button<{ $bg: string; $fg: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  cursor: pointer;
+  font-family: ${FZ.font};
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 20px;
+  background: ${({ $bg }) => $bg};
+  color: ${({ $fg }) => $fg};
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+`
+
+export const apopPaperSx = {
+  width: 332,
+  borderRadius: '16px',
+  border: `1px solid ${FZ.line2}`,
+  boxShadow: FZ.pop,
+  overflow: 'hidden',
+}
 
 export const Toolbar = styled.div`
   display: flex;
@@ -177,37 +371,37 @@ export const ToolbarLabel = styled.div`
 export const FilterChipBtn = styled.button<{ $active?: boolean }>`
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid ${({ $active }) => ($active ? COLORS.prince : COLORS.ink20)};
-  background: ${({ $active }) => ($active ? COLORS.prince20 : COLORS.white)};
-  color: ${({ $active }) => ($active ? COLORS.princeDark : COLORS.ink60)};
-  padding: 7px 11px;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 12.5px;
+  gap: 7px;
+  border: 1px solid ${({ $active }) => ($active ? FZ.violet : FZ.line2)};
+  background: ${({ $active }) => ($active ? FZ.violetSoft : FZ.surf)};
+  color: ${({ $active }) => ($active ? FZ.violetDark : FZ.ink2)};
+  padding: 8px 13px;
+  border-radius: 10px;
+  font-family: ${FZ.font};
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
   }
 
   &:hover {
-    background: ${({ $active }) => ($active ? COLORS.prince20 : COLORS.pebble)};
+    border-color: ${({ $active }) => ($active ? FZ.violet : FZ.ink3)};
   }
 `
 
 export const FilterBadge = styled.span`
-  background: ${COLORS.prince};
-  color: ${COLORS.white};
-  font-size: 10.5px;
+  background: ${FZ.violet};
+  color: ${FZ.surf};
+  font-size: 11px;
   border-radius: 20px;
-  padding: 0 6px;
-  min-width: 16px;
-  height: 16px;
+  padding: 0 5px;
+  min-width: 18px;
+  height: 18px;
   display: inline-grid;
   place-items: center;
   font-weight: 700;
@@ -455,9 +649,10 @@ export const StatusDot = styled.span<{ $bg: string; $fg: string }>`
 
 /* ── Mini calendar (date jump) ────────────────────────────── */
 export const MiniWrap = styled.div`
-  width: 264px;
-  background: ${COLORS.white};
-  padding: 14px;
+  width: 272px;
+  font-family: ${FZ.font};
+  background: ${FZ.surf};
+  padding: 15px;
 `
 
 export const MiniTop = styled.div`
@@ -517,22 +712,22 @@ export const MiniDay = styled.button<{ $mut?: boolean; $today?: boolean; $sel?: 
   cursor: pointer;
   position: relative;
   color: ${({ $sel, $today, $mut }) =>
-    $sel ? COLORS.white : $today ? COLORS.princeDark : $mut ? COLORS.ink40 : COLORS.ink};
-  background: ${({ $sel }) => ($sel ? COLORS.prince : 'transparent')};
-  outline: ${({ $today, $sel }) => ($today && !$sel ? `1.5px solid ${COLORS.prince}` : 'none')};
+    $sel ? FZ.surf : $today ? FZ.violetDark : $mut ? FZ.ink3 : FZ.ink};
+  background: ${({ $sel }) => ($sel ? FZ.violet : 'transparent')};
+  outline: ${({ $today, $sel }) => ($today && !$sel ? `1.5px solid ${FZ.violet}` : 'none')};
 
   &:hover {
-    background: ${({ $sel }) => ($sel ? COLORS.prince : COLORS.pebble)};
+    background: ${({ $sel }) => ($sel ? FZ.violet : FZ.surf2)};
   }
 
   &::after {
     content: '';
     position: absolute;
-    bottom: 3px;
+    bottom: 4px;
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: ${({ $has, $sel }) => ($has ? ($sel ? COLORS.white : '#b88a2e') : 'transparent')};
+    background: ${({ $has, $sel }) => ($has ? ($sel ? FZ.surf : '#f0982a') : 'transparent')};
   }
 `
 
@@ -544,95 +739,95 @@ export const NavCluster = styled.div`
 `
 
 export const NavIconBtn = styled.button`
-  width: 32px;
-  height: 32px;
-  border: 1px solid ${COLORS.ink20};
-  background: ${COLORS.white};
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   cursor: pointer;
-  color: ${COLORS.ink60};
+  color: ${FZ.ink2};
+  transition: background 0.15s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: ${FZ.surf2};
+    color: ${FZ.ink};
+  }
+`
+
+export const TodayBtn = styled.button`
+  border: 1px solid ${FZ.line2};
+  background: ${FZ.surf};
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: ${FZ.font};
+  font-size: 13px;
+  font-weight: 600;
+  color: ${FZ.ink};
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: ${FZ.surf2};
+  }
+`
+
+export const DateLabelBtn = styled.button`
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: ${FZ.font};
+  font-size: 15px;
+  font-weight: 700;
+  color: ${FZ.ink};
+  cursor: pointer;
   transition: background 0.15s;
 
   svg {
     width: 16px;
     height: 16px;
+    color: ${FZ.ink3};
   }
 
   &:hover {
-    background: ${COLORS.pebble};
-    color: ${COLORS.ink};
-  }
-`
-
-export const TodayBtn = styled.button`
-  border: 1px solid ${COLORS.ink20};
-  background: ${COLORS.white};
-  border-radius: 8px;
-  padding: 7px 13px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: ${COLORS.ink};
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: ${COLORS.pebble};
-  }
-`
-
-export const DateLabelBtn = styled.button`
-  border: 1px solid ${COLORS.ink20};
-  background: ${COLORS.white};
-  border-radius: 8px;
-  padding: 7px 13px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: ${COLORS.ink};
-  cursor: pointer;
-  transition: background 0.15s;
-
-  svg {
-    width: 15px;
-    height: 15px;
-    color: ${COLORS.ink60};
-  }
-
-  &:hover {
-    background: ${COLORS.pebble};
+    background: ${FZ.surf2};
   }
 `
 
 /* ── Segmented control (Day/Week/Month + colour mode) ─────── */
 export const Seg = styled.div`
   display: inline-flex;
-  background: ${COLORS.white};
-  border: 1px solid ${COLORS.ink20};
-  border-radius: 10px;
+  background: ${FZ.surf2};
+  border: 1px solid ${FZ.line2};
+  border-radius: 11px;
   padding: 3px;
   gap: 2px;
 `
 
 export const SegBtn = styled.button<{ $on?: boolean }>`
   border: 0;
-  background: ${({ $on }) => ($on ? COLORS.ink : 'transparent')};
-  color: ${({ $on }) => ($on ? COLORS.white : COLORS.ink60)};
-  padding: 6px 13px;
-  border-radius: 7px;
-  font-family: inherit;
+  background: ${({ $on }) => ($on ? FZ.ink : 'transparent')};
+  color: ${({ $on }) => ($on ? FZ.surf : FZ.ink2)};
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-family: ${FZ.font};
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 13px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
   &:hover {
-    color: ${({ $on }) => ($on ? COLORS.white : COLORS.ink)};
+    color: ${({ $on }) => ($on ? FZ.surf : FZ.ink)};
   }
 `
 
@@ -641,8 +836,8 @@ export const ShiftIndicator = styled.div<{ $top: number; $height: number }>`
   inset-inline: 0;
   top: ${({ $top }) => $top}px;
   height: ${({ $height }) => $height}px;
-  background: rgba(123, 105, 255, 0.04);
-  border-left: 1px dashed rgba(123, 105, 255, 0.25);
+  background: rgba(107, 78, 255, 0.04);
+  border-left: 1px dashed rgba(107, 78, 255, 0.25);
   pointer-events: none;
   z-index: 1;
 `
@@ -658,39 +853,79 @@ export const OffOverlay = styled.div`
   z-index: 2;
   font-size: 13px;
   font-weight: 600;
-  color: ${COLORS.ink40};
+  color: ${FZ.ink3};
 `
 
 export const ShiftTimeLabel = styled.span`
   font-size: 11px;
-  color: ${COLORS.ink40};
-  font-weight: 400;
-  margin-inline-start: auto;
+  color: ${FZ.ink3};
+  font-weight: 500;
+`
+
+export const StaffName = styled.span`
+  font-size: 13.5px;
+  font-weight: 700;
+  color: ${FZ.ink};
+`
+
+export const StaffRole = styled.span`
+  font-size: 11px;
+  font-weight: 500;
+  color: ${FZ.ink3};
+  margin-top: -4px;
 `
 
 export const WeekDayHeader = styled.div<{ $isToday?: boolean }>`
-  font-weight: ${({ $isToday }) => ($isToday ? 700 : 600)};
+  gap: 3px !important;
+`
+
+export const WeekDayName = styled.span<{ $isToday?: boolean }>`
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: ${({ $isToday }) => ($isToday ? FZ.violetDark : FZ.ink3)};
+`
+
+export const WeekDayNum = styled.span<{ $isToday?: boolean }>`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  background: ${({ $isToday }) => ($isToday ? FZ.violet : 'transparent')};
+  color: ${({ $isToday }) => ($isToday ? FZ.surf : FZ.ink)};
 `
 
 export const addApptBtnSx = {
-  borderRadius: '9px', px: 2, py: 1, fontWeight: 700,
+  fontFamily: FZ.font,
+  background: FZ.violet,
+  borderRadius: '11px',
+  px: 2.2,
+  py: 1.1,
+  fontWeight: 700,
+  boxShadow: '0 2px 8px rgba(107,78,255,.35)',
+  '&:hover': { background: FZ.violetDark, boxShadow: '0 2px 8px rgba(107,78,255,.35)' },
 }
 
 export const popoverPaperSx = {
   mt: 1,
-  borderRadius: '12px',
-  border: `1px solid ${COLORS.ink20}`,
-  boxShadow: '0 8px 28px rgba(20,20,20,.12), 0 2px 6px rgba(20,20,20,.06)',
+  borderRadius: '14px',
+  border: `1px solid ${FZ.line2}`,
+  boxShadow: FZ.pop,
 }
 
 export const blockedTimeBtnSx = {
-  border: `1px solid ${COLORS.ink20}`,
-  background: COLORS.white,
-  color: COLORS.ink80,
-  borderRadius: '8px',
+  fontFamily: FZ.font,
+  border: `1px solid ${FZ.line2}`,
+  background: FZ.surf,
+  color: FZ.ink2,
+  borderRadius: '10px',
   fontWeight: 600,
-  fontSize: '12.5px',
-  px: 1.4,
-  py: 0.8,
-  '&:hover': { background: COLORS.pebble, borderColor: COLORS.ink20 },
+  fontSize: '13px',
+  px: 1.6,
+  py: 0.9,
+  '&:hover': { background: FZ.surf2, borderColor: FZ.ink3 },
 }

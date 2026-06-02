@@ -4,6 +4,7 @@ import {
   addMonths, endOfMonth, endOfWeek, eachDayOfInterval, format,
   isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths,
 } from 'date-fns'
+import { dayKey } from '@/lib/utils'
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import {
@@ -47,7 +48,7 @@ export default function MiniCalendar({ value, busyDays, onPick }: Props) {
       </MiniDow>
       <MiniGrid>
         {days.map((d) => {
-          const key = format(d, 'yyyy-MM-dd')
+          const key = dayKey(d)
           return (
             <MiniDay
               key={key}

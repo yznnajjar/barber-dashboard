@@ -1,7 +1,13 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/authStore'
+import { AUTH_REFRESH_ENDPOINT } from '@/constants'
 
-const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL })
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  // Serialise array params as repeated keys (staffIds=a&staffIds=b) instead of
+  // the bracketed staffIds[]=a form, which the API's query DTO rejects.
+  paramsSerializer: { indexes: null },
+})
 
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
@@ -30,7 +36,7 @@ api.interceptors.response.use(
     const status = error.response?.status
 
     // Only attempt refresh on 401, not on login/refresh endpoints themselves
-    if (status !== 401 || originalRequest._retry || originalRequest.url === '/auth/refresh') {
+    if (status !== 401 || originalRequest._retry || originalRequest.url === AUTH_REFRESH_ENDPOINT) {
       return Promise.reject(error)
     }
 
@@ -57,7 +63,7 @@ api.interceptors.response.use(
 
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        `${process.env.NEXT_PUBLIC_API_URL}${AUTH_REFRESH_ENDPOINT}`,
         { refreshToken },
       )
       const { accessToken, refreshToken: newRefreshToken } = res.data.data

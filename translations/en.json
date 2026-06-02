@@ -61,7 +61,49 @@
     "cancelTitle": "Cancel this appointment?",
     "cancelMessage": "{name}'s appointment will be cancelled and the slot will reopen.",
     "noShowTitle": "Mark as no-show?",
-    "noShowMessage": "{name} did not attend. The appointment will be marked as no-show."
+    "noShowMessage": "{name} did not attend. The appointment will be marked as no-show.",
+    "form": {
+      "client": "Client",
+      "phone": "Phone",
+      "service": "Service",
+      "staff": "Staff",
+      "date": "Date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "type": "Type",
+      "notes": "Notes",
+      "notesPlaceholder": "Allergies, preferences…",
+      "newClientOption": "+ \"{name}\" (new client)",
+      "returningClient": "Returning · {count} visits",
+      "serviceMenuItem": "{name} · {duration} {unit} · {price} JD",
+      "serviceHelperText": "{name} · {duration} {unit}",
+      "duration": "Duration",
+      "price": "Price",
+      "total": "Total"
+    },
+    "errors": {
+      "clientRequired": "Client name is required",
+      "serviceRequired": "Service is required",
+      "staffRequired": "Staff is required",
+      "dateRequired": "Date is required",
+      "pastDate": "Cannot book in the past",
+      "pastBlockDate": "Cannot block time in the past",
+      "startRequired": "Start time is required",
+      "endRequired": "End time is required",
+      "endBeforeStart": "End time must be after start time",
+      "phoneRequired": "Phone is required for new clients",
+      "pastTime": "Start time has already passed"
+    },
+    "blockedTime": {
+      "addTitle": "Add blocked time",
+      "editTitle": "Edit blocked time",
+      "types": {
+        "Break": "Break",
+        "Admin": "Admin",
+        "Personal": "Personal",
+        "Meeting": "Meeting"
+      }
+    }
   },
   "queue": {
     "title": "Live Queue",

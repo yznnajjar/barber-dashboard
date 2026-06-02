@@ -70,16 +70,14 @@ export const AVATAR_GRADIENTS: Record<number, string> = {
   8: `linear-gradient(135deg, ${COLORS.ink80}, ${COLORS.ink})`,
 }
 
-/** Colour-by-service / colour-by-staff palette — deterministic hash pick. */
+/** Colour-by-service / colour-by-staff palette — deterministic hash pick. Fresha pastels. */
 export const CALENDAR_PALETTE = [
-  { bg: '#E6F2EF', fg: '#0A5A4D' },
-  { bg: '#F8EFDC', fg: '#8A6618' },
-  { bg: '#E8F0FB', fg: '#23529C' },
-  { bg: '#FBEAF0', fg: '#993556' },
-  { bg: '#ECE7FB', fg: '#4B3B9C' },
-  { bg: '#E9F4E6', fg: '#3B6D11' },
-  { bg: '#FDF0DA', fg: '#B85C1A' },
-  { bg: '#E2F0FA', fg: '#1A6B8A' },
+  { bg: '#d3f3e8', fg: '#0a6b51' }, // teal
+  { bg: '#d8ebfd', fg: '#15508f' }, // blue
+  { bg: '#fcdcec', fg: '#9c2c5d' }, // pink
+  { bg: '#ffe6c9', fg: '#9c5a12' }, // orange
+  { bg: '#e9f5c6', fg: '#5a7012' }, // lime
+  { bg: '#e6e2ff', fg: '#4a37b3' }, // lavender
 ] as const
 
 /** Heatmap intensity ramp (analytics busy-hours). */

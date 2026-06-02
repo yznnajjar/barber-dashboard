@@ -8,12 +8,11 @@ import PaymentsRounded from '@mui/icons-material/PaymentsRounded'
 import GroupsRounded from '@mui/icons-material/GroupsRounded'
 import PersonAddAlt1Rounded from '@mui/icons-material/PersonAddAlt1Rounded'
 import ContentCutRounded from '@mui/icons-material/ContentCutRounded'
-import { format } from 'date-fns'
 import { useDashboardStats } from '@/hooks/queries/useDashboardStats'
 import { useBookings } from '@/hooks/queries/useBookings'
 import { useQueue } from '@/hooks/queries/useQueue'
 import { BOOKING_STATUS_CANCELLED, ROUTE_MWEB_QUEUE, ROUTE_MWEB_BOOKINGS } from '@/constants'
-import { formatJDCompact, formatTime12, formatDuration } from '@/lib/utils'
+import { formatJDCompact, formatTime12, formatDuration, dayKey } from '@/lib/utils'
 import StatCard from '@/components/shared/StatCard'
 import StatusChip from '@/components/shared/StatusChip'
 import UserAvatar from '@/components/shared/UserAvatar'
@@ -32,7 +31,7 @@ export default function MwebDashboardView() {
   const { push } = useMwebRouter()
 
   const { data: stats, isLoading: statsLoading, isError } = useDashboardStats()
-  const { data: bookings, isLoading: bookingsLoading } = useBookings(format(new Date(), 'yyyy-MM-dd'))
+  const { data: bookings, isLoading: bookingsLoading } = useBookings(dayKey(new Date()))
   const { data: queue, isLoading: queueLoading } = useQueue()
 
   const upcoming = useMemo(

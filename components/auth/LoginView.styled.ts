@@ -59,7 +59,7 @@ export const BrandPanel = styled.div`
 
   .brand-hero { margin-top: auto; }
   .kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: ${COLORS.limelight}; margin-bottom: 18px; }
-  .brand-hero h1 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 52px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 18px; }
+  .brand-hero h1 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 56px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 18px; }
   .brand-hero h1 em { font-style: italic; color: ${COLORS.prince60}; }
   .tagline { font-size: 15px; line-height: 1.6; color: ${COLORS.ink40}; max-width: 460px; }
 
@@ -74,7 +74,7 @@ export const BrandPanel = styled.div`
   .who-name { font-size: 13px; font-weight: 600; }
   .who-role { font-size: 11.5px; color: ${COLORS.ink40}; }
 
-  .brand-foot { margin-top: 36px; display: flex; align-items: center; gap: 16px; color: ${COLORS.ink40}; font-size: 12px; }
+  .brand-foot { margin-top: 36px; display: flex; align-items: center; gap: 24px; color: ${COLORS.ink40}; font-size: 12px; }
   .brand-foot .status-dot { width: 8px; height: 8px; border-radius: 50%; background: ${COLORS.success}; display: inline-block; margin-inline-end: 6px; }
 `
 

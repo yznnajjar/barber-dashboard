@@ -1,10 +1,69 @@
+import { format, addDays, startOfWeek } from 'date-fns'
+import { timeToMinutes } from '@/lib/utils'
 import { STATUS_COLORS, CALENDAR_PALETTE } from '@/lib/colors'
+import type { CalendarViewType } from '@/constants'
 import type { BookingStatus } from '@/types'
 
-export const START_HOUR = 9
+export const START_HOUR = 8
 export const END_HOUR = 20
-export const PX_PER_MIN = 1 // 60px per hour row
+export const ROW_PX = 64 // hour-row height (Fresha grid)
+export const PX_PER_MIN = ROW_PX / 60 // derive per-minute scale from the row height
 export const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
+
+export const WEEK_START_DAY = 0 as const  // 0 = Sunday
+
+export const BLOCK_MIN_HEIGHT_PX = 26
+export const BLOCK_PX_PADDING    = 4
+export const STRIP_DAYS          = 14
+
+/** Pixel top-offset for a block from the grid's start hour. */
+export const blockTopPx = (startTime: string): number =>
+  (timeToMinutes(startTime) - START_HOUR * 60) * PX_PER_MIN
+
+/** Pixel height for an appointment or blocked-time block. */
+export const blockHeightPx = (startTime: string, endTime: string): number =>
+  Math.max(
+    (timeToMinutes(endTime) - timeToMinutes(startTime)) * PX_PER_MIN - BLOCK_PX_PADDING,
+    BLOCK_MIN_HEIGHT_PX,
+  )
+
+export const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+export type WeekdayLabel = typeof WEEKDAY_LABELS[number]
+
+/** Returns the short weekday label ('Mon', 'Tue', …) for a given date. */
+export const weekdayOf = (date: Date): WeekdayLabel => WEEKDAY_LABELS[date.getDay()]
+
+/** Current time position on the calendar grid, derived from START_HOUR / END_HOUR / PX_PER_MIN. */
+export const nowPosition = (now = new Date()) => {
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  return {
+    nowMin,
+    nowTop: (nowMin - START_HOUR * 60) * PX_PER_MIN,
+    nowInRange: nowMin >= START_HOUR * 60 && nowMin <= END_HOUR * 60,
+  }
+}
+
+/** Number of columns for the calendar grid. Day view = one column per staff member, week = 7. */
+export const calendarCols = (view: CalendarViewType, staffCount = 4): number =>
+  view === 'day' ? staffCount : 7
+
+/** Human-readable date label for the toolbar (e.g. "Mon 2 Jun", "2–8 Jun", "June 2026"). */
+export const calendarLabel = (view: CalendarViewType, anchor: Date): string => {
+  if (view === 'day') {
+    return anchor.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  }
+  if (view === 'week') {
+    const start = startOfWeek(anchor, { weekStartsOn: WEEK_START_DAY })
+    return `${format(start, 'd MMM')} – ${format(addDays(start, 6), 'd MMM')}`
+  }
+  return format(anchor, 'MMMM yyyy')
+}
+
+/** Pixel top-offset and height for a staff shift band on the grid. */
+export const shiftPosition = (shift: { start: string; end: string } | null) => ({
+  top: shift ? (timeToMinutes(shift.start) - START_HOUR * 60) * PX_PER_MIN : 0,
+  height: shift ? (timeToMinutes(shift.end) - timeToMinutes(shift.start)) * PX_PER_MIN : 0,
+})
 
 // Drag-to-reschedule snaps to this grid (minutes).
 export const SNAP_MINUTES = 15

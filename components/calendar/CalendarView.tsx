@@ -1,11 +1,8 @@
 'use client'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Box, Button, Popover, Skeleton, Snackbar, Alert } from '@mui/material'
-import {
-  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
-  type DragStartEvent, type DragEndEvent,
-} from '@dnd-kit/core'
+import { Box, Button, Popover, Skeleton, Snackbar, Alert, LinearProgress, Chip } from '@mui/material'
+import { DndContext, DragOverlay } from '@dnd-kit/core'
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import AddRounded from '@mui/icons-material/AddRounded'
@@ -15,25 +12,26 @@ import PeopleAltRounded from '@mui/icons-material/PeopleAltRounded'
 import FlagRounded from '@mui/icons-material/FlagRounded'
 import GridViewRounded from '@mui/icons-material/GridViewRounded'
 import PaletteRounded from '@mui/icons-material/PaletteRounded'
+import FilterListRounded from '@mui/icons-material/FilterListRounded'
 import { addDays, startOfWeek, format } from 'date-fns'
 import { useBookings } from '@/hooks/queries/useBookings'
 import { useStaff } from '@/hooks/queries/useStaff'
 import { useServices } from '@/hooks/queries/useServices'
-import { useRescheduleBooking } from '@/hooks/mutations/useRescheduleBooking'
-import { formatTime12, dayKey, timeToMinutes, minutesToTime } from '@/lib/utils'
-import { colorForBooking, type ColorMode } from './calendarConfig'
-import {
-  START_HOUR, END_HOUR, PX_PER_MIN, HOURS, snapDeltaToMinutes, clampStartMinutes,
-} from './calendarConfig'
-import { STATUS_COLORS } from '@/lib/colors'
+import { useCalendarState } from '@/hooks/calendar/useCalendarState'
+import { useCalendarFilters } from '@/hooks/calendar/useCalendarFilters'
+import { useCalendarDnD } from '@/hooks/calendar/useCalendarDnD'
+import { dayKey } from '@/lib/utils'
+import { colorForBooking, nowPosition, weekdayOf, calendarCols, calendarLabel, shiftPosition, blockHeightPx, WEEK_START_DAY } from './calendarConfig'
+import { HOURS } from './calendarConfig'
+import { STATUS_COLORS, CALENDAR_PALETTE } from '@/lib/colors'
 import PageHeader from '@/components/shared/PageHeader'
 import UserAvatar from '@/components/shared/UserAvatar'
 import ErrorState from '@/components/shared/ErrorState'
-import BookingFormDrawer from './BookingFormDrawer'
+import BookingFormModal from './BookingFormModal'
 import AppointmentBlock from './AppointmentBlock'
-import AppointmentDetailDrawer from './AppointmentDetailDrawer'
+import AppointmentDetailPopover from './AppointmentDetailPopover'
 import BlockedTimeBlock from './BlockedTimeBlock'
-import BlockedTimeDrawer from './BlockedTimeDrawer'
+import BlockedTimeModal from './BlockedTimeModal'
 import MonthView from './MonthView'
 import DroppableColumn from './DroppableColumn'
 import CalendarFilterChip from './CalendarFilterChip'
@@ -42,13 +40,14 @@ import {
   CalWrap, HeaderRow, Body, TimeCol, TimeSlot, RowBg, CurrentLine,
   Toolbar, FilterStrip, ApptGhost, ShiftIndicator, OffOverlay,
   Seg, SegBtn, NavCluster, NavIconBtn, TodayBtn, DateLabelBtn, StatusDot,
-  Caret, ShiftTimeLabel, WeekDayHeader,
+  Caret, StaffName, StaffRole, WeekDayHeader, WeekDayName, WeekDayNum,
   addApptBtnSx, popoverPaperSx, blockedTimeBtnSx,
 } from './CalendarView.styled'
 import {
-  CALENDAR_VIEW_DAY, CALENDAR_VIEW_WEEK, CALENDAR_VIEW_MONTH, type CalendarViewType,
+  CALENDAR_VIEW_DAY, CALENDAR_VIEW_WEEK, CALENDAR_VIEW_MONTH,
 } from '@/constants'
 import type { Booking, BlockedTime, BookingStatus } from '@/types'
+import type { ColorMode } from './calendarConfig'
 
 const STATUS_ORDER: BookingStatus[] = [
   'PENDING', 'CONFIRMED', 'ARRIVED', 'STARTED', 'COMPLETED', 'NO_SHOW', 'CANCELLED',
@@ -59,46 +58,32 @@ const nextBlockId = () => `blocked-${Date.now()}-${++blockIdCounter}`
 
 export default function CalendarView() {
   const t = useTranslations('calendar')
-  const [view, setView] = useState<CalendarViewType>(CALENDAR_VIEW_DAY)
-  const [anchor, setAnchor] = useState<Date>(new Date())
-  const [selected, setSelected] = useState<Booking | null>(null)
+
+  const { view, setView, anchor, setAnchor, step, colorMode, setColorMode, dateAnchor, setDateAnchor } = useCalendarState()
+  const { filters, setFilters, hasActiveFilters } = useCalendarFilters()
+  const { dragging, toast, setToast, sensors, onDragStart, onDragEnd } = useCalendarDnD({ view })
+
+  const [detail, setDetail] = useState<{ booking: Booking; anchorEl: HTMLElement } | null>(null)
   const [formOpen, setFormOpen] = useState(false)
-  const [dragging, setDragging] = useState<Booking | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
 
   // Blocked time — local state until backend endpoints exist.
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([])
   const [blockedDrawerOpen, setBlockedDrawerOpen] = useState(false)
   const [editingBlock, setEditingBlock] = useState<BlockedTime | null>(null)
 
-  const [filters, setFilters] = useState({ staffIds: [] as string[], statuses: [] as string[], serviceIds: [] as string[] })
-  const [colorMode, setColorMode] = useState<ColorMode>('status')
-
-  // Date jump popover anchor.
-  const [dateAnchor, setDateAnchor] = useState<HTMLButtonElement | null>(null)
-
-  const dateKey = format(anchor, 'yyyy-MM-dd')
-  const { data: bookings, isLoading, isError } = useBookings(dateKey, view, filters)
+  const dateKey = dayKey(anchor)
+  const { data: bookings, isLoading, isFetching, isError } = useBookings(dateKey, view, filters)
   const { data: staff } = useStaff()
   const { data: services } = useServices()
-  const reschedule = useRescheduleBooking()
-
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const weekDays = useMemo(() => {
-    const start = startOfWeek(anchor, { weekStartsOn: 0 })
+    const start = startOfWeek(anchor, { weekStartsOn: WEEK_START_DAY })
     return Array.from({ length: 7 }, (_, i) => addDays(start, i))
   }, [anchor])
 
   const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
-  const nowTop = (nowMin - START_HOUR * 60) * PX_PER_MIN
-  const nowInRange = nowMin >= START_HOUR * 60 && nowMin <= END_HOUR * 60
-
-  const step = (dir: number) => setAnchor((d) => addDays(d, dir * (view === CALENDAR_VIEW_WEEK ? 7 : 1)))
-  // Map JS day-of-week to the enum label used in WorkingDay.
-  const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const currentWeekday = WEEKDAY_LABELS[anchor.getDay()]
+  const { nowMin, nowTop, nowInRange } = nowPosition(now)
+  const currentWeekday = weekdayOf(anchor)
 
   const getShift = (staffId: string) => {
     const member = staff?.find((m) => m.id === staffId)
@@ -107,11 +92,16 @@ export default function CalendarView() {
     return wd?.enabled ? wd : null
   }
 
-  const dayBookings = (key: string, staffId?: string) =>
-    (bookings ?? []).filter((b) => b.date === key && (staffId ? b.staffId === staffId : true))
+  const dayBookings = useMemo(() => {
+    const all = bookings ?? []
+    return (key: string, staffId?: string) =>
+      all.filter((b) => b.date === key && (staffId ? b.staffId === staffId : true))
+  }, [bookings])
 
-  const dayBlockedTimes = (key: string, staffId: string) =>
-    blockedTimes.filter((bt) => bt.date === key && bt.staffId === staffId)
+  const dayBlockedTimes = useMemo(() => {
+    return (key: string, staffId: string) =>
+      blockedTimes.filter((bt) => bt.date === key && bt.staffId === staffId)
+  }, [blockedTimes])
 
   const saveBlockedTime = useCallback((data: Omit<BlockedTime, 'id'>) => {
     setBlockedTimes((prev) => [...prev, { ...data, id: nextBlockId() }])
@@ -126,60 +116,47 @@ export default function CalendarView() {
     setBlockedDrawerOpen(true)
   }
 
-  const onDragStart = (e: DragStartEvent) => {
-    setDragging((e.active.data.current?.booking as Booking) ?? null)
-  }
+  // Distinct colour per staff member, assigned by list order so no two collide.
+  const staffColors = useMemo(() => {
+    const map: Record<string, { bg: string; fg: string }> = {}
+    ;(staff ?? []).forEach((m, i) => {
+      const c = CALENDAR_PALETTE[i % CALENDAR_PALETTE.length]
+      map[m.id] = { bg: c.bg, fg: c.fg }
+    })
+    return map
+  }, [staff])
 
-  const onDragEnd = (e: DragEndEvent) => {
-    const booking = e.active.data.current?.booking as Booking | undefined
-    setDragging(null)
-    if (!booking) return
+  const busyDays = useMemo(() => new Set((bookings ?? []).map((b) => b.date)), [bookings])
 
-    const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
-    const deltaMin = snapDeltaToMinutes(e.delta.y)
-    const newStart = clampStartMinutes(timeToMinutes(booking.startTime) + deltaMin, duration)
+  // Service lookups for block footer / detail popover.
+  const priceByService = useMemo(() => {
+    const map: Record<string, number> = {}
+    ;(services ?? []).forEach((s) => { map[s.id] = s.price })
+    return map
+  }, [services])
 
-    const targetColumn = (e.over?.data.current?.columnId as string | undefined) ?? null
-    const sourceColumn = (e.active.data.current?.columnId as string | undefined) ?? null
-    const movedColumn = targetColumn && targetColumn !== sourceColumn
+  const staffNameById = useMemo(() => {
+    const map: Record<string, string> = {}
+    ;(staff ?? []).forEach((m) => { map[m.id] = m.name })
+    return map
+  }, [staff])
 
-    if (deltaMin === 0 && !movedColumn) return
-
-    const newDate = (view === CALENDAR_VIEW_WEEK && movedColumn) ? targetColumn! : booking.date
-    const newStartAt = `${newDate}T${minutesToTime(newStart)}:00.000Z`
-    reschedule.mutate(
-      { id: booking.id, startAt: newStartAt },
-      {
-        onSuccess: () =>
-          setToast(`${booking.customerName} → ${formatTime12(minutesToTime(newStart))}`),
-      },
-    )
-  }
+  // Bookings per staff across the visible range (day/week/month) shown in the Team filter.
+  const bookingsByStaff = useMemo(() =>
+    (bookings ?? []).reduce<Record<string, number>>((acc, b) => {
+      acc[b.staffId] = (acc[b.staffId] ?? 0) + 1
+      return acc
+    }, {}),
+  [bookings])
 
   if (isError) return <ErrorState />
 
-  const cols = view === CALENDAR_VIEW_DAY ? staff?.length ?? 4 : 7
-  const label = view === CALENDAR_VIEW_DAY
-    ? anchor.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-    : view === CALENDAR_VIEW_WEEK
-    ? `${format(weekDays[0], 'd MMM')} – ${format(weekDays[6], 'd MMM')}`
-    : format(anchor, 'MMMM yyyy')
+  const cols = calendarCols(view, staff?.length)
+  const label = calendarLabel(view, anchor)
 
-  // Days that have at least one booking — drives the gold dot under the
-  // mini-calendar numbers.
-  const busyDays = useMemo(() => new Set((bookings ?? []).map((b) => b.date)), [bookings])
-
-  // Booking counts per staff (today) — surfaced as the right-side number on
-  // each Team filter row, mirroring Fresha's "8" / "6" indicators.
-  const todayKey = dayKey(anchor)
-  const bookingsByStaff = useMemo(() =>
-    (bookings ?? []).reduce<Record<string, number>>((acc, b) => {
-      if (b.date === todayKey) acc[b.staffId] = (acc[b.staffId] ?? 0) + 1
-      return acc
-    }, {}),
-  [bookings, todayKey])
-
-  const draggingColor = dragging ? colorForBooking(dragging, colorMode) : null
+  const draggingColor = dragging
+    ? (colorMode === 'staff' && staffColors[dragging.staffId]) || colorForBooking(dragging, colorMode)
+    : null
 
   return (
     <Box>
@@ -206,6 +183,18 @@ export default function CalendarView() {
         </Seg>
 
         <Box sx={{ flex: 1 }} />
+
+        {/* Filter active badge — shown in month view when filters are set */}
+        {view === CALENDAR_VIEW_MONTH && hasActiveFilters && (
+          <Chip
+            icon={<FilterListRounded />}
+            label="Filters active"
+            size="small"
+            color="primary"
+            variant="outlined"
+            sx={{ mr: 1 }}
+          />
+        )}
 
         <NavCluster>
           <NavIconBtn type="button" onClick={() => step(-1)} aria-label="Previous">
@@ -238,6 +227,11 @@ export default function CalendarView() {
         />
       </Popover>
 
+      {/* Thin refetch indicator — shown while filter-triggered refetch is in flight */}
+      {isFetching && !isLoading && (
+        <LinearProgress sx={{ height: 2, borderRadius: 0 }} />
+      )}
+
       {/* Strip 2 — filters (day/week only) */}
       {view !== CALENDAR_VIEW_MONTH && (
         <FilterStrip>
@@ -248,7 +242,7 @@ export default function CalendarView() {
             title="Team members"
             searchPlaceholder="Search team…"
             value={filters.staffIds}
-            onChange={(v) => setFilters((f) => ({ ...f, staffIds: v }))}
+            onChange={(v) => setFilters({ ...filters, staffIds: v })}
             options={
               (staff ?? []).map((m) => ({
                 value: m.id,
@@ -256,7 +250,7 @@ export default function CalendarView() {
                 secondary: m.role,
                 searchText: `${m.name} ${m.role ?? ''}`,
                 left: <UserAvatar name={m.name} color={m.avatarColor} size="sm" />,
-                right: bookingsByStaff[m.id] ? String(bookingsByStaff[m.id]) : undefined,
+                right: String(bookingsByStaff[m.id] ?? 0),
               }))
             }
           />
@@ -268,7 +262,7 @@ export default function CalendarView() {
             title="Appointment status"
             width={248}
             value={filters.statuses}
-            onChange={(v) => setFilters((f) => ({ ...f, statuses: v }))}
+            onChange={(v) => setFilters({ ...filters, statuses: v })}
             options={STATUS_ORDER.map((s) => {
               const c = STATUS_COLORS[s]
               return {
@@ -286,7 +280,7 @@ export default function CalendarView() {
             title="Services"
             searchPlaceholder="Search services…"
             value={filters.serviceIds}
-            onChange={(v) => setFilters((f) => ({ ...f, serviceIds: v }))}
+            onChange={(v) => setFilters({ ...filters, serviceIds: v })}
             options={(services ?? []).map((s) => ({
               value: s.id,
               primary: s.name,
@@ -344,37 +338,37 @@ export default function CalendarView() {
             <HeaderRow $cols={cols}>
               <div />
               {view === CALENDAR_VIEW_DAY
-                ? staff?.map((m) => {
-                    const shift = getShift(m.id)
+                ? staff?.map((m) => (
+                    <div key={m.id}>
+                      <UserAvatar name={m.name} color={m.avatarColor} size="lg" />
+                      <StaffName>{m.name.split(' ')[0]}</StaffName>
+                      <StaffRole>{m.role}</StaffRole>
+                    </div>
+                  ))
+                : weekDays.map((d) => {
+                    const isToday = dayKey(d) === dayKey(now)
                     return (
-                      <div key={m.id}>
-                        <UserAvatar name={m.name} color={m.avatarColor} size="sm" />
-                        <span>{m.name.split(' ')[0]}</span>
-                        {shift && (
-                          <ShiftTimeLabel>
-                            {formatTime12(shift.start)}–{formatTime12(shift.end)}
-                          </ShiftTimeLabel>
-                        )}
-                      </div>
+                      <WeekDayHeader key={d.toISOString()} $isToday={isToday}>
+                        <WeekDayName $isToday={isToday}>{format(d, 'EEE')}</WeekDayName>
+                        <WeekDayNum $isToday={isToday}>{format(d, 'd')}</WeekDayNum>
+                      </WeekDayHeader>
                     )
-                  })
-                : weekDays.map((d) => (
-                    <WeekDayHeader key={d.toISOString()} $isToday={dayKey(d) === dayKey(now)}>
-                      <span>{format(d, 'EEE d')}</span>
-                    </WeekDayHeader>
-                  ))}
+                  })}
             </HeaderRow>
 
             <Body $cols={cols}>
               <TimeCol>
-                {HOURS.map((h) => <TimeSlot key={h}>{formatTime12(`${h}:00`)}</TimeSlot>)}
+                {HOURS.map((h) => (
+                  <TimeSlot key={h}>
+                    <span>{h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`}</span>
+                  </TimeSlot>
+                ))}
               </TimeCol>
 
               {view === CALENDAR_VIEW_DAY
                 ? staff?.map((m) => {
                     const shift = getShift(m.id)
-                    const shiftTop = shift ? (timeToMinutes(shift.start) - START_HOUR * 60) * PX_PER_MIN : 0
-                    const shiftH = shift ? (timeToMinutes(shift.end) - timeToMinutes(shift.start)) * PX_PER_MIN : 0
+                    const { top: shiftTop, height: shiftH } = shiftPosition(shift)
                     return (
                       <DroppableColumn key={m.id} columnId={m.id}>
                         {HOURS.map((h) => <RowBg key={h} />)}
@@ -384,7 +378,7 @@ export default function CalendarView() {
                           <OffOverlay>Off</OffOverlay>
                         )}
                         {dayBookings(dayKey(anchor), m.id).map((b) => (
-                          <AppointmentBlock key={b.id} booking={b} compact={false} columnId={m.id} colorMode={colorMode} onClick={() => setSelected(b)} />
+                          <AppointmentBlock key={b.id} booking={b} compact={false} columnId={m.id} colorMode={colorMode} staffColor={staffColors[b.staffId]} price={priceByService[b.serviceId]} onClick={(anchorEl) => setDetail({ booking: b, anchorEl })} />
                         ))}
                         {dayBlockedTimes(dayKey(anchor), m.id).map((bt) => (
                           <BlockedTimeBlock key={bt.id} block={bt} onClick={() => openBlockedDrawer(bt)} />
@@ -397,7 +391,7 @@ export default function CalendarView() {
                     <DroppableColumn key={d.toISOString()} columnId={dayKey(d)}>
                       {HOURS.map((h) => <RowBg key={h} />)}
                       {dayBookings(dayKey(d)).map((b) => (
-                        <AppointmentBlock key={b.id} booking={b} compact columnId={dayKey(d)} colorMode={colorMode} onClick={() => setSelected(b)} />
+                        <AppointmentBlock key={b.id} booking={b} compact columnId={dayKey(d)} colorMode={colorMode} staffColor={staffColors[b.staffId]} price={priceByService[b.serviceId]} onClick={(anchorEl) => setDetail({ booking: b, anchorEl })} />
                       ))}
                       {nowInRange && dayKey(d) === dayKey(now) && <CurrentLine $top={nowTop} />}
                     </DroppableColumn>
@@ -410,8 +404,9 @@ export default function CalendarView() {
               <ApptGhost
                 $bg={draggingColor.bg}
                 $color={draggingColor.fg}
-                $height={Math.max((timeToMinutes(dragging.endTime) - timeToMinutes(dragging.startTime)) * PX_PER_MIN - 4, 26)}
+                $height={blockHeightPx(dragging.startTime, dragging.endTime)}
               >
+                <div className="appt-tm">{dragging.startTime}–{dragging.endTime}</div>
                 <div className="appt-name">{dragging.customerName}</div>
                 <div className="appt-svc">{dragging.serviceName}</div>
               </ApptGhost>
@@ -420,9 +415,15 @@ export default function CalendarView() {
         </DndContext>
       )}
 
-      <BookingFormDrawer open={formOpen} onClose={() => setFormOpen(false)} />
-      <AppointmentDetailDrawer booking={selected} onClose={() => setSelected(null)} />
-      <BlockedTimeDrawer
+      <BookingFormModal open={formOpen} onClose={() => setFormOpen(false)} />
+      <AppointmentDetailPopover
+        booking={detail?.booking ?? null}
+        anchorEl={detail?.anchorEl ?? null}
+        price={detail ? priceByService[detail.booking.serviceId] : undefined}
+        staffName={detail ? staffNameById[detail.booking.staffId] : undefined}
+        onClose={() => setDetail(null)}
+      />
+      <BlockedTimeModal
         open={blockedDrawerOpen}
         editing={editingBlock}
         onSave={saveBlockedTime}
@@ -430,9 +431,19 @@ export default function CalendarView() {
         onClose={() => { setBlockedDrawerOpen(false); setEditingBlock(null) }}
       />
 
-      <Snackbar open={!!toast} autoHideDuration={2600} onClose={() => setToast(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="success" variant="filled" sx={{ borderRadius: 2 }} onClose={() => setToast(null)}>
-          Rescheduled · {toast}
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={2600}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={toast?.severity ?? 'success'}
+          variant="filled"
+          sx={{ borderRadius: 2 }}
+          onClose={() => setToast(null)}
+        >
+          {toast?.severity === 'success' ? `Rescheduled · ${toast.message}` : toast?.message}
         </Alert>
       </Snackbar>
     </Box>

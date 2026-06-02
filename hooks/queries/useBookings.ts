@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { bookingsApi, type BookingFilters } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { QUERY_KEY_BOOKINGS } from '@/constants'
@@ -11,9 +11,14 @@ export const useBookings = (
   filters?: BookingFilters,
 ) => {
   const salonId = useAuthStore((s) => s.salonId)
+  const staffIds = filters?.staffIds ?? []
+  const statuses = filters?.statuses ?? []
+  const serviceIds = filters?.serviceIds ?? []
+
   return useQuery({
-    queryKey: [QUERY_KEY_BOOKINGS, salonId, date, view, filters],
+    queryKey: [QUERY_KEY_BOOKINGS, salonId, date, view, ...staffIds, ...statuses, ...serviceIds],
     queryFn: () => bookingsApi.getCalendar(date, view, filters),
     enabled: !!salonId && !!date,
+    placeholderData: keepPreviousData,
   })
 }

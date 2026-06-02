@@ -61,7 +61,49 @@
     "cancelTitle": "إلغاء هذا الموعد؟",
     "cancelMessage": "سيتم إلغاء موعد {name} وإعادة فتح الوقت.",
     "noShowTitle": "تسجيل كعدم حضور؟",
-    "noShowMessage": "لم يحضر {name}. سيتم تسجيل الموعد كعدم حضور."
+    "noShowMessage": "لم يحضر {name}. سيتم تسجيل الموعد كعدم حضور.",
+    "form": {
+      "client": "العميل",
+      "phone": "الهاتف",
+      "service": "الخدمة",
+      "staff": "الموظف",
+      "date": "التاريخ",
+      "startTime": "وقت البدء",
+      "endTime": "وقت الانتهاء",
+      "type": "النوع",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "الحساسيات، التفضيلات…",
+      "newClientOption": "+ \"{name}\" (عميل جديد)",
+      "returningClient": "عميل عائد · {count} زيارات",
+      "serviceMenuItem": "{name} · {duration} {unit} · {price} JD",
+      "serviceHelperText": "{name} · {duration} {unit}",
+      "duration": "المدة",
+      "price": "السعر",
+      "total": "الإجمالي"
+    },
+    "errors": {
+      "clientRequired": "اسم العميل مطلوب",
+      "serviceRequired": "الخدمة مطلوبة",
+      "staffRequired": "الموظف مطلوب",
+      "dateRequired": "التاريخ مطلوب",
+      "pastDate": "لا يمكن الحجز في الماضي",
+      "pastBlockDate": "لا يمكن حجب الوقت في الماضي",
+      "startRequired": "وقت البدء مطلوب",
+      "endRequired": "وقت الانتهاء مطلوب",
+      "endBeforeStart": "يجب أن يكون وقت الانتهاء بعد وقت البدء",
+      "phoneRequired": "الهاتف مطلوب للعملاء الجدد",
+      "pastTime": "وقت البدء قد مضى"
+    },
+    "blockedTime": {
+      "addTitle": "إضافة وقت محجوز",
+      "editTitle": "تعديل الوقت المحجوز",
+      "types": {
+        "Break": "استراحة",
+        "Admin": "إداري",
+        "Personal": "شخصي",
+        "Meeting": "اجتماع"
+      }
+    }
   },
   "queue": {
     "title": "قائمة الانتظار المباشرة",

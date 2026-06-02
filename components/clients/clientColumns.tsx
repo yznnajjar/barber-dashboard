@@ -11,7 +11,7 @@ export const buildClientColumns = (t: (k: string) => string): GridColDef<Client>
     renderCell: (p) => (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%' }}>
         <UserAvatar name={p.row.name} color={p.row.avatarColor} size="sm" />
-        <Typography sx={{ fontWeight: 600, fontSize: 14 }}>{p.row.name}</Typography>
+        <Typography sx={{ fontWeight: 600, fontSize: 13.5 }}>{p.row.name}</Typography>
       </Box>
     ),
   },
@@ -23,6 +23,6 @@ export const buildClientColumns = (t: (k: string) => string): GridColDef<Client>
   },
   {
     field: 'totalSpend', headerName: t('spend'), width: 130, type: 'number',
-    renderCell: (p) => <Typography sx={{ fontWeight: 600, fontSize: 14 }}>{formatJD(p.row.totalSpend)}</Typography>,
+    renderCell: (p) => <Typography sx={{ fontWeight: 600, fontSize: 13.5 }}>{formatJD(p.row.totalSpend)}</Typography>,
   },
 ]

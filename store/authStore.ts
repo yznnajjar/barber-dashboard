@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { AUTH_STORAGE_KEY } from '@/constants'
 import type { User } from '@/types'
 
 interface AuthState {
@@ -24,6 +25,6 @@ export const useAuthStore = create<AuthState>()(
       updateTokens: (token, refreshToken) => set({ token, refreshToken }),
       logout: () => set({ token: null, refreshToken: null, user: null, salonId: null }),
     }),
-    { name: 'barber-auth' },
+    { name: AUTH_STORAGE_KEY },
   ),
 )

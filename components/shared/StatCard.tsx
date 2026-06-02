@@ -14,7 +14,7 @@ interface Props {
 
 export default function StatCard({ label, value, icon, trend, loading, size = 'md' }: Props) {
   return (
-    <Card sx={{ p: 2.25, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+    <Card sx={{ px: 2.5, py: 2.25, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
       <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: COLORS.prince20, color: 'primary.main', display: 'grid', placeItems: 'center', mb: 0.5 }}>
         {icon}
       </Box>

@@ -1,6 +1,6 @@
 'use client'
-import { formatTime12, timeToMinutes } from '@/lib/utils'
-import { START_HOUR, PX_PER_MIN } from './calendarConfig'
+import { formatTime12 } from '@/lib/utils'
+import { blockTopPx, blockHeightPx } from './calendarConfig'
 import { Appt } from './CalendarView.styled'
 import { COLORS } from '@/lib/colors'
 import type { BlockedTime } from '@/types'
@@ -11,8 +11,8 @@ interface Props {
 }
 
 export default function BlockedTimeBlock({ block, onClick }: Props) {
-  const top = (timeToMinutes(block.startTime) - START_HOUR * 60) * PX_PER_MIN
-  const height = Math.max((timeToMinutes(block.endTime) - timeToMinutes(block.startTime)) * PX_PER_MIN - 4, 26)
+  const top = blockTopPx(block.startTime)
+  const height = blockHeightPx(block.startTime, block.endTime)
 
   return (
     <Appt

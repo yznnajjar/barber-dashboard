@@ -20,7 +20,7 @@ export const HeroCaption = styled.div`
 export const HeroNumber = styled.div`
   font-family: 'Playfair Display', serif;
   font-weight: 700;
-  font-size: 160px;
+  font-size: 220px;
   line-height: 0.9;
   letter-spacing: -0.04em;
   margin: 8px 0;
@@ -50,6 +50,7 @@ export const PositionBadge = styled.div`
   display: grid;
   place-items: center;
   font-weight: 700;
+  font-size: 15px;
   flex-shrink: 0;
 `
 

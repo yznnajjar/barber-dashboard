@@ -29,6 +29,7 @@ export const useCreateBooking = () => {
         staffId: input.staffId,
         serviceId: input.serviceId,
         startAt: input.startAt,
+        notes: input.notes,
       })
     },
     onSuccess: () => {

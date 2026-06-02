@@ -11,12 +11,11 @@ import { useDashboardStats } from '@/hooks/queries/useDashboardStats'
 import { useBookings } from '@/hooks/queries/useBookings'
 import { useActivity } from '@/hooks/queries/useActivity'
 import { BOOKING_STATUS_CANCELLED } from '@/constants'
-import { formatJDCompact } from '@/lib/utils'
-import { format } from 'date-fns'
+import { formatJDCompact, dayKey } from '@/lib/utils'
 import PageHeader from '@/components/shared/PageHeader'
 import StatCard from '@/components/shared/StatCard'
 import ErrorState from '@/components/shared/ErrorState'
-import BookingFormDrawer from '@/components/calendar/BookingFormDrawer'
+import BookingFormModal from '@/components/calendar/BookingFormModal'
 import UpcomingAppointments from './UpcomingAppointments'
 import ActivityFeed from './ActivityFeed'
 import { StatGrid, ContentGrid } from './DashboardView.styled'
@@ -26,7 +25,7 @@ const ICON = { fontSize: 20 } as const
 export default function DashboardView() {
   const t = useTranslations('dashboard')
   const [bookingOpen, setBookingOpen] = useState(false)
-  const today = format(new Date(), 'yyyy-MM-dd')
+  const today = dayKey(new Date())
   const { data: stats, isLoading: statsLoading, isError } = useDashboardStats()
   const { data: bookings, isLoading: bookingsLoading } = useBookings(today)
   const { data: activity } = useActivity()
@@ -62,7 +61,7 @@ export default function DashboardView() {
         <ActivityFeed items={activity ?? []} />
       </ContentGrid>
 
-      <BookingFormDrawer open={bookingOpen} onClose={() => setBookingOpen(false)} />
+      <BookingFormModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
     </Box>
   )
 }

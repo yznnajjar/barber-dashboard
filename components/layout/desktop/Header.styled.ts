@@ -1,5 +1,21 @@
 import styled from 'styled-components'
+import { IconButton } from '@mui/material'
 import { COLORS } from '@/lib/colors'
+
+export const HeaderIconButton = styled(IconButton)`
+  width: 36px;
+  height: 36px;
+  border: 1px solid ${COLORS.ink20};
+  background: ${COLORS.white};
+  color: ${COLORS.ink80};
+
+  svg { font-size: 18px; }
+
+  &:hover {
+    background: ${COLORS.pebble};
+    border-color: ${COLORS.ink20};
+  }
+`
 
 export const HeaderRoot = styled.header`
   background: ${COLORS.white};

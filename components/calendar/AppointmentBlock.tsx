@@ -1,7 +1,9 @@
 'use client'
+import { memo } from 'react'
 import { useDraggable } from '@dnd-kit/core'
-import { formatTime12, timeToMinutes } from '@/lib/utils'
-import { START_HOUR, PX_PER_MIN, colorForBooking, type ColorMode } from './calendarConfig'
+import { formatTime12, formatJD, timeToMinutes } from '@/lib/utils'
+import { colorForBooking, blockTopPx, blockHeightPx, type ColorMode } from './calendarConfig'
+import { STATUS_COLORS } from '@/lib/colors'
 import { Appt } from './CalendarView.styled'
 import type { Booking } from '@/types'
 
@@ -10,14 +12,20 @@ interface Props {
   compact: boolean
   columnId: string
   colorMode?: ColorMode
-  onClick: () => void
+  /** Distinct per-staff colour, used when colorMode is 'staff'. */
+  staffColor?: { bg: string; fg: string }
+  /** Service price in JD, for the block footer. */
+  price?: number
+  onClick: (anchor: HTMLElement) => void
 }
 
-export default function AppointmentBlock({ booking, compact, columnId, colorMode = 'status', onClick }: Props) {
-  const top = (timeToMinutes(booking.startTime) - START_HOUR * 60) * PX_PER_MIN
-  const height = Math.max((timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)) * PX_PER_MIN - 4, 26)
-  const c = colorForBooking(booking, colorMode)
+const AppointmentBlock = memo(function AppointmentBlock({ booking, compact, columnId, colorMode = 'status', staffColor, price, onClick }: Props) {
+  const top = blockTopPx(booking.startTime)
+  const height = blockHeightPx(booking.startTime, booking.endTime)
+  const c = colorMode === 'staff' && staffColor ? staffColor : colorForBooking(booking, colorMode)
   const isInactive = booking.status === 'CANCELLED' || booking.status === 'NO_SHOW'
+  const duration = timeToMinutes(booking.endTime) - timeToMinutes(booking.startTime)
+  const statusColor = STATUS_COLORS[booking.status].fg
 
   const draggable = !isInactive
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -36,11 +44,20 @@ export default function AppointmentBlock({ booking, compact, columnId, colorMode
       $strike={isInactive}
       $dragging={isDragging}
       $draggable={draggable}
-      onClick={() => { if (!isDragging) onClick() }}
+      onClick={(e) => { if (!isDragging) onClick(e.currentTarget) }}
       {...(draggable ? { ...listeners, ...attributes } : {})}
     >
+      <span className="appt-dot" style={{ background: statusColor }} />
+      <div className="appt-tm">{formatTime12(booking.startTime)}–{formatTime12(booking.endTime)} · {duration} min</div>
       <div className="appt-name">{booking.customerName}</div>
-      <div className="appt-svc">{compact ? formatTime12(booking.startTime) : booking.serviceName}</div>
+      {!compact && <div className="appt-svc">{booking.serviceName}</div>}
+      {!compact && price != null && (
+        <div className="appt-foot">
+          <span className="appt-price">{formatJD(price)}</span>
+        </div>
+      )}
     </Appt>
   )
-}
+})
+
+export default AppointmentBlock

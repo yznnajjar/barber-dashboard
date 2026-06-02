@@ -57,7 +57,12 @@ export default function CommandModal({ open, onClose }: { open: boolean; onClose
   const go = (href: string) => { onClose(); router.push(href) }
 
   return (
-    <Modal open={open} onClose={onClose} sx={{ display: 'grid', placeItems: 'start center', pt: '12vh' }}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      slotProps={{ backdrop: { sx: { backgroundColor: 'rgba(6,9,17,0.40)' } } }}
+      sx={{ display: 'grid', placeItems: 'start center', pt: '12vh' }}
+    >
       <Box sx={{ width: 520, maxWidth: '92vw', bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 16px 48px rgba(6,9,17,0.22)', overflow: 'hidden', outline: 'none' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           <SearchRounded sx={{ color: 'text.secondary' }} />

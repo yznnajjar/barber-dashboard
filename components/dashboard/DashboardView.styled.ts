@@ -19,6 +19,7 @@ export const CardHead = styled.div`
   border-bottom: 1px solid ${COLORS.ink20};
   display: flex;
   align-items: center;
+  gap: 12px;
 `
 
 export const ApptRow = styled.div<{ $last?: boolean }>`

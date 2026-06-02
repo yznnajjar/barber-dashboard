@@ -101,6 +101,7 @@ export interface CreateBookingInput {
   staffId: string
   serviceId: string
   startAt: string
+  notes?: string
 }
 
 export interface RescheduleBookingInput {

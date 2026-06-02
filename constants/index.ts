@@ -4,6 +4,14 @@ import type { BookingStatus } from '@/types'
 export const DEFAULT_LOGIN_EMAIL = 'owner@salon.com'
 export const DEFAULT_LOGIN_PASSWORD = 'password123'
 
+// ---- Auth ----
+// Zustand-persist key for the auth store. lib/socket.ts reads this raw from
+// localStorage to pull the token, so both sites must use the same key.
+export const AUTH_STORAGE_KEY = 'barber-auth'
+// Backend refresh endpoint. Referenced by the api client and by the axios
+// interceptor (both as a request URL and as a no-retry guard), so it must match.
+export const AUTH_REFRESH_ENDPOINT = '/auth/refresh'
+
 // ---- React Query keys ----
 export const QUERY_KEY_BOOKINGS = 'bookings'
 export const QUERY_KEY_QUEUE = 'queue'
@@ -102,6 +110,12 @@ export const CALENDAR_VIEW_WEEK  = 'week'  as const
 export const CALENDAR_VIEW_MONTH = 'month' as const
 
 export type CalendarViewType = typeof CALENDAR_VIEW_DAY | typeof CALENDAR_VIEW_WEEK | typeof CALENDAR_VIEW_MONTH
+
+// ---- Calendar URL query params ----
+export const CALENDAR_PARAM_VIEW       = 'view'
+export const CALENDAR_PARAM_STAFF_ID   = 'staffId'
+export const CALENDAR_PARAM_STATUS     = 'status'
+export const CALENDAR_PARAM_SERVICE_ID = 'serviceId'
 
 // ---- Misc ----
 export const DEFAULT_PAGE_SIZE = 20
